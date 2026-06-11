@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Allergyze — Check a product</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family:'Inter',sans-serif; background:#FAF8F5; color:#1A1714; -webkit-font-smoothing:antialiased; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
+  @keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  .fade-up { animation:fadeUp 0.35s ease forwards; }
+  .fade-in { animation:fadeIn 0.25s ease forwards; }
+  textarea:focus, input:focus { outline:none; border-color:#B8924A !important; }
+  select:focus { outline:none; }
+  button { transition:opacity 0.15s, transform 0.1s; }
+  button:active { transform:scale(0.98); }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:#E8E0D4; border-radius:2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const GOLD='#B8924A',GOLD_LT='#F0E6D3',GOLD_MID='#D4AA72';
+const BASE='#FAF8F5',CARD='#FFFFFF',CARD2='#F5F2ED',BORDER='#E8E0D4';
+const INK='#1A1714',INK2='#5C5248',INK3='#9C8E82';
+const RED='#C0392B',RED_LT='#FDF2F1',RED_BD='#F0C4C0';
+const GREEN='#2E7D5E',GREEN_LT='#EDF7F2',GREEN_BD='#A8D5C2';
+
+const ALLERGENS = [
+  {id:"fragrance1",name:"Fragrance Mix 1",severity:2,category:"Fragrance",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Avoid in all leave-on AND rinse-off products. 'Parfum' on any label is a hard no.",
+   terms:["fragrance","parfum","eugenol","isoeugenol","cinnamal","cinnamic aldehyde","cinnamic alcohol","amylcinnamic aldehyde","amyl cinnamal","hydroxycitronellal","oakmoss","evernia prunastri","geraniol","linalool","limonene"]},
+  {id:"fragrance2",name:"Fragrance Mix 2",severity:2,category:"Fragrance",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Covers a separate set of fragrance chemicals. Your fragrance sensitivity is broad.",
+   terms:["fragrance","parfum","coumarin","lyral","hydroxyisohexyl 3-cyclohexene carboxaldehyde","citronellol","farnesol","citral","alpha-hexylcinnamic aldehyde","hexyl cinnamal"]},
+  {id:"tixocortol",name:"Tixocortol-21-Pivalate",severity:3,category:"Corticosteroid",riskProfile:"avoid",
+   clinicalNote:"STRONG reaction — your highest score. Steroid allergy marker. Tell every doctor before any prescription or procedure.",
+   terms:["tixocortol","hydrocortisone","cortisone","cortisol","pivalate","budesonide"]},
+  {id:"oxybenzone",name:"Oxybenzone",severity:2,category:"Sunscreen",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Found in most chemical sunscreens. Use mineral-only sunscreens exclusively.",
+   terms:["oxybenzone","benzophenone-3","2-hydroxy-4-methoxy-benzophenone","2-hydroxy-4-methoxybenzophenone"]},
+  {id:"octinoxate",name:"Ethylhexyl Methoxycinnamate",severity:2,category:"Sunscreen",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Also called Octinoxate. One of the most common chemical sunscreen filters.",
+   terms:["ethylhexyl methoxycinnamate","octinoxate","octyl methoxycinnamate","2-ethylhexyl-4-methoxycinnamate","2-ethylhexyl methoxycinnamate"]},
+  {id:"propolis",name:"Propolis",severity:2,category:"Bee Product",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Common in 'natural' skincare, throat lozenges, and bee-derived products.",
+   terms:["propolis","bee glue","cera flava"]},
+  {id:"amerchol",name:"Amerchol / Lanolin",severity:1,category:"Animal Derivative",riskProfile:"caution",
+   clinicalNote:"Mild reaction (+1). Threshold appears dose-dependent. Avoid products where lanolin is a primary ingredient (top 5 on the list).",
+   terms:["amerchol","lanolin","lanolin alcohol","wool wax","wool alcohol","adeps lanae","anhydrous lanolin","acetylated lanolin"]},
+  {id:"gold",name:"Gold Sodium Thiosulfate",severity:1,category:"Metal",riskProfile:"caution",
+   clinicalNote:"Mild reaction (+1). Avoid gold jewelry worn against skin for extended periods. Flag with dentist.",
+   terms:["gold sodium thiosulfate","gold"]},
+  {id:"ylangylang",name:"Ylang Ylang",severity:1,category:"Fragrance / Botanical",riskProfile:"caution",
+   clinicalNote:"Mild reaction (+1). Avoid in leave-on products; may tolerate in rinse-off at very low concentration.",
+   terms:["ylang ylang","cananga odorata","cananga oil"]},
+  {id:"compositae",name:"Compositae Mix",severity:1,category:"Botanical",riskProfile:"caution",
+   clinicalNote:"Mild reaction (+1). Avoid as a primary ingredient and avoid stacking multiple Compositae products.",
+   terms:["compositae","chamomile","chamomilla","matricaria","calendula","arnica","echinacea","chrysanthemum","sunflower","helianthus","feverfew","tanacetum","yarrow","achillea","mugwort","artemisia"]},
+  {id:"abitol",name:"Abietic Acid / Abitol",severity:2,category:"Resin",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Found in adhesives, rosin, and some haircare products.",
+   terms:["abietic acid","abitol","colophony","rosin","pine resin","tall oil"]},
+  {id:"bha",name:"BHA (Butylhydroxyanisole)",severity:2,category:"Preservative",riskProfile:"avoid",
+   clinicalNote:"Moderate reaction. Present in foods AND cosmetics. Check food labels — chips, crackers, cereals.",
+   terms:["butylhydroxyanisole","bha","butylated hydroxyanisole"]},
+  {id:"phenylsalicylate",name:"Phenyl Salicylate",severity:1,category:"Sunscreen",riskProfile:"caution",
+   clinicalNote:"Mild reaction (+1). An older UV filter. Avoid in sunscreens and UV-protective products.",
+   terms:["phenyl salicylate","salol"]},
+];
+
+const SAFE_PRODUCTS=[
+  {id:1,name:"Vanicream Gentle Facial Cleanser",brand:"Vanicream",category:"Cleanser",notes:"Sulfate-free, fragrance-free, botanical-free",where:"Target · CVS · Walmart"},
+  {id:2,name:"Vanicream Facial Moisturizer SPF 30",brand:"Vanicream",category:"Moisturizer + SPF",notes:"Zinc oxide 19.5% · 5 ceramides · Replaces moisturizer + sunscreen",where:"Target · CVS · Walmart"},
+  {id:3,name:"Vanicream Daily Facial Moisturizer",brand:"Vanicream",category:"Moisturizer",notes:"5 ceramides · hyaluronic acid · squalane",where:"Target · CVS · Walmart"},
+  {id:4,name:"Vanicream Vitamin C Serum",brand:"Vanicream",category:"Serum",notes:"Stable Vitamin C · 5 ceramides",where:"Target · CVS · Walmart"},
+  {id:5,name:"Vanicream SPF 50+ Mineral Sunscreen",brand:"Vanicream",category:"Sunscreen",notes:"Zinc oxide 12% · Body sunscreen",where:"Target · CVS · Walmart"},
+  {id:6,name:"Vanicream Clinical Strength Antiperspirant",brand:"Vanicream",category:"Deodorant",notes:"Only 8 total ingredients · No fragrance",where:"Target · CVS · Walmart"},
+  {id:7,name:"Vanicream Enhanced Moisturizer",brand:"Vanicream",category:"Body Moisturizer",notes:"Ceramides + hyaluronic acid · No botanical extracts",where:"Target · CVS · Walmart"},
+  {id:8,name:"Vanicream Gentle Body Wash",brand:"Vanicream",category:"Body Wash",notes:"Fragrance-free · No botanical extracts",where:"Target · CVS · Walmart"},
+  {id:9,name:"Cleure Sunscreen SPF 30",brand:"Cleure",category:"Sunscreen",notes:"Zinc oxide + titanium dioxide · Only 13 ingredients",where:"cleure.com · Amazon"},
+  {id:10,name:"SEEN Fragrance Free Shampoo",brand:"SEEN",category:"Shampoo",notes:"⚠️ Contains bisabolol — patch test first",where:"Ulta · helloseen.com · Amazon"},
+  {id:11,name:"SEEN Fragrance Free Conditioner",brand:"SEEN",category:"Conditioner",notes:"⚠️ Contains bisabolol — patch test first",where:"Ulta · helloseen.com · Amazon"},
+  {id:12,name:"SEEN Magic Serum (Fragrance Free)",brand:"SEEN",category:"Hair Serum",notes:"Only 3 ingredients · Shine + heat protection",where:"Ulta · helloseen.com · Amazon"},
+  {id:13,name:"Color WOW Root Cover Up (Dark Brown)",brand:"Color WOW",category:"Hair Color",notes:"Pure mineral pigments only",where:"Ulta · Sephora · Target"},
+  {id:14,name:"NuBeauti Root Touch Up Powder",brand:"NuBeauti",category:"Hair Color",notes:"3–5 pure mineral pigments",where:"nubeauti.com · Amazon"},
+  {id:15,name:"Madison Reed Root Touch-Up Mascara",brand:"Madison Reed",category:"Hair Color",notes:"Dark Brown · Verified safe formula",where:"madisonreed.com · Ulta"},
+  {id:16,name:"Neutrogena Hydro Boost+ Caffeine Eye Gel",brand:"Neutrogena",category:"Eye Cream",notes:"Caffeine + peptides + hyaluronic acid",where:"Target · CVS · Walmart"},
+  {id:17,name:"O'Keeffe's Lip Repair",brand:"O'Keeffe's",category:"Lip Balm",notes:"No fragrance · No lanolin",where:"Target · Walmart · CVS"},
+  {id:18,name:"O'Keeffe's Lip Repair Night Formula",brand:"O'Keeffe's",category:"Lip Balm",notes:"Richer overnight formula",where:"Target · Walmart · CVS"},
+  {id:19,name:"Sawyer 20% Picaridin Lotion",brand:"Sawyer",category:"Bug Repellent",notes:"Only 2 ingredients · LOTION not spray",where:"REI · Amazon · Target"},
+  {id:20,name:"Ben's 30% DEET (wipes or pump)",brand:"Ben's",category:"Bug Repellent",notes:"4 total ingredients · Fragrance-free",where:"REI · Amazon · bens30.com"},
+  {id:21,name:"Thorne Zinc Picolinate",brand:"Thorne",category:"Supplement",notes:"Only 4 inactive ingredients",where:"thorne.com · Amazon"},
+];
+
+const CATEGORIES=["All",...Array.from(new Set(SAFE_PRODUCTS.map(p=>p.category))).sort()];
+const RISK={avoid:{color:RED,bg:RED_LT,border:RED_BD,label:"Avoid"},caution:{color:GOLD,bg:GOLD_LT,border:GOLD_MID,label:"Caution"}};
+
+function positionRisk(a,term,list){
+  const idx=list.toLowerCase().indexOf(term.toLowerCase());
+  if(idx/list.length<0.3&&a.riskProfile==="caution") return{...a,riskProfile:"avoid",positionWarning:true};
+  return a;
+}
+function verdict(hits){
+  if(!hits.length) return"safe";
+  if(hits.some(h=>h.riskProfile==="avoid")) return"avoid";
+  return"caution";
+}
+function runCheck(text){
+  const lower=text.toLowerCase();
+  const hits=[],clean=[];
+  ALLERGENS.forEach(a=>{
+    const matched=a.terms.filter(t=>lower.includes(t));
+    if(matched.length) hits.push({...positionRisk(a,matched[0],text),matched});
+    else clean.push(a.name);
+  });
+  hits.sort((a,b)=>({avoid:0,caution:1}[a.riskProfile]-{avoid:0,caution:1}[b.riskProfile]));
+  return{hits,clean,verdict:verdict(hits)};
+}
+
+function SeverityDots({severity}){
+  const c=severity===3?RED:severity===2?GOLD:GOLD_MID;
+  return <span style={{display:"inline-flex",gap:3,alignItems:"center"}}>
+    {[1,2,3].map(i=><span key={i} style={{width:6,height:6,borderRadius:"50%",background:i<=severity?c:BORDER}}/>)}
+  </span>;
+}
+
+function ResultsView({results,expanded,setExpanded,animKey}){
+  const sf={fontFamily:"'Inter',sans-serif"};
+  const pf={fontFamily:"'Playfair Display',serif"};
+  return(
+    <div key={animKey} className="fade-up" style={{marginTop:20}}>
+      {results.verdict==="safe"&&<div style={{background:GREEN_LT,border:`1.5px solid ${GREEN_BD}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}>
+        <div style={{...pf,fontSize:20,fontWeight:600,color:GREEN,marginBottom:5}}>All clear</div>
+        <p style={{color:"#1E6B4F",fontSize:13,lineHeight:1.6,margin:0}}>No allergens detected across all 13 of your confirmed sensitivities. Always verify the physical label — formulas change.</p>
+      </div>}
+      {results.verdict==="avoid"&&<div style={{background:RED_LT,border:`1.5px solid ${RED_BD}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}>
+        <div style={{...pf,fontSize:20,fontWeight:600,color:RED,marginBottom:5}}>Do not use</div>
+        <p style={{color:"#A0302B",fontSize:13,lineHeight:1.6,margin:0}}>
+          {results.hits.filter(h=>h.riskProfile==="avoid").length} allergen{results.hits.filter(h=>h.riskProfile==="avoid").length>1?"s":""} with moderate-to-strong reactions detected.
+          {results.hits.filter(h=>h.riskProfile==="caution").length>0&&` Also ${results.hits.filter(h=>h.riskProfile==="caution").length} mild allergen${results.hits.filter(h=>h.riskProfile==="caution").length>1?"s":""} present.`}
+        </p>
+      </div>}
+      {results.verdict==="caution"&&<div style={{background:GOLD_LT,border:`1.5px solid ${GOLD_MID}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}>
+        <div style={{...pf,fontSize:20,fontWeight:600,color:"#8B6820",marginBottom:5}}>Proceed with care</div>
+        <p style={{color:"#7A5C18",fontSize:13,lineHeight:1.6,margin:0}}>Mild allergen detected. You may tolerate this depending on concentration and product type. Read the notes below.</p>
+      </div>}
+
+      {results.hits.length>0&&["avoid","caution"].map(profile=>{
+        const phits=results.hits.filter(h=>h.riskProfile===profile);
+        if(!phits.length) return null;
+        const r=RISK[profile];
+        return<div key={profile} style={{marginBottom:14}}>
+          <div style={{fontSize:10,fontWeight:700,color:r.color,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>
+            {r.label} — {phits.length} allergen{phits.length>1?"s":""}
+          </div>
+          {phits.map(h=>(
+            <div key={h.id} onClick={()=>setExpanded(expanded===h.id?null:h.id)}
+              style={{background:r.bg,border:`1.5px solid ${r.border}`,borderRadius:12,padding:"14px 16px",marginBottom:8,cursor:"pointer"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:5}}>
+                    <span style={{fontWeight:600,color:r.color,fontSize:14}}>{h.name}</span>
+                    <SeverityDots severity={h.severity}/>
+                    {h.positionWarning&&<span style={{background:r.color+"22",color:r.color,fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:20}}>High in list</span>}
+                  </div>
+                  <div style={{fontSize:12,color:INK2}}>Detected: <strong>{h.matched.join(", ")}</strong></div>
+                  <div style={{fontSize:11,color:INK3,marginTop:2}}>{h.category}</div>
+                </div>
+                <span style={{color:INK3,fontSize:13,marginLeft:8,flexShrink:0}}>{expanded===h.id?"▲":"▼"}</span>
+              </div>
+              {expanded===h.id&&<div className="fade-in" style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${r.border}`,fontSize:13,color:INK2,lineHeight:1.7}}>{h.clinicalNote}</div>}
+            </div>
+          ))}
+        </div>;
+      })}
+
+      {results.hits.length>0&&results.clean.length>0&&
+        <div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:600,color:INK3,letterSpacing:0.5,marginBottom:8}}>NOT DETECTED — {results.clean.length} allergens</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+            {results.clean.map(c=><span key={c} style={{background:CARD,border:`1px solid ${BORDER}`,color:INK2,fontSize:11,padding:"3px 8px",borderRadius:20}}>{c}</span>)}
+          </div>
+        </div>
+      }
+    </div>
+  );
+}
+
+function App(){
+  const [tab,setTab]=React.useState("checker");
+  const [mode,setMode]=React.useState("search"); // "search" | "paste"
+  const [searchQ,setSearchQ]=React.useState("");
+  const [searchResults,setSearchResults]=React.useState(null);
+  const [searching,setSearching]=React.useState(false);
+  const [searchError,setSearchError]=React.useState(null);
+  const [pasteInput,setPasteInput]=React.useState("");
+  const [results,setResults]=React.useState(null);
+  const [expanded,setExpanded]=React.useState(null);
+  const [animKey,setAnimKey]=React.useState(0);
+  const [productSearch,setProductSearch]=React.useState("");
+  const [productCat,setProductCat]=React.useState("All");
+
+  // Search Open Beauty Facts
+  const searchProduct=async()=>{
+    if(!searchQ.trim()) return;
+    setSearching(true);
+    setSearchResults(null);
+    setSearchError(null);
+    setResults(null);
+    try{
+      const res=await fetch(`https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchQ)}&search_simple=1&action=process&json=1&page_size=5`);
+      const data=await res.json();
+      if(data.products&&data.products.length>0){
+        const found=data.products.filter(p=>p.ingredients_text_en||p.ingredients_text).slice(0,4);
+        if(found.length>0){
+          setSearchResults(found);
+        } else {
+          setSearchError("Product found but no ingredient list available. Try pasting the ingredients manually.");
+        }
+      } else {
+        setSearchError("No products found. Try a different name or paste the ingredient list directly.");
+      }
+    }catch(e){
+      setSearchError("Search unavailable. Please paste the ingredient list manually.");
+    }
+    setSearching(false);
+  };
+
+  const checkFromSearch=(product)=>{
+    const ingredients=product.ingredients_text_en||product.ingredients_text||"";
+    const r=runCheck(ingredients);
+    setResults(r);
+    setAnimKey(k=>k+1);
+    setExpanded(null);
+    setSearchResults(null);
+  };
+
+  const checkPaste=()=>{
+    if(!pasteInput.trim()) return;
+    const r=runCheck(pasteInput);
+    setResults(r);
+    setAnimKey(k=>k+1);
+    setExpanded(null);
+  };
+
+  const filtered=React.useMemo(()=>SAFE_PRODUCTS.filter(p=>{
+    const mc=productCat==="All"||p.category===productCat;
+    const ms=!productSearch||p.name.toLowerCase().includes(productSearch.toLowerCase())||p.brand.toLowerCase().includes(productSearch.toLowerCase());
+    return mc&&ms;
+  }),[productSearch,productCat]);
+
+  const sf={fontFamily:"'Inter',sans-serif"};
+  const pf={fontFamily:"'Playfair Display',serif"};
+
+  return(
+    <div style={{background:BASE,minHeight:"100vh",...sf}}>
+
+      {/* NAV */}
+      <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <a href="index.html" style={{...pf,fontSize:20,fontWeight:700,color:INK,textDecoration:"none"}}>Allergyze</a>
+        <a href="index.html" style={{fontSize:13,color:INK2,textDecoration:"none",fontWeight:500}}>← Back to home</a>
+      </div>
+
+      {/* TAB PILLS */}
+      <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 24px"}}>
+        <div style={{maxWidth:680,margin:"0 auto"}}>
+          <div style={{display:"inline-flex",background:CARD2,borderRadius:40,padding:3,gap:2}}>
+            {[["checker","Check Ingredients"],["products","Safe Products"],["allergens","My Allergens"]].map(([id,label])=>(
+              <button key={id} onClick={()=>setTab(id)} style={{
+                padding:"8px 16px",border:"none",borderRadius:40,cursor:"pointer",
+                fontSize:13,fontWeight:tab===id?600:400,
+                background:tab===id?GOLD:"transparent",
+                color:tab===id?CARD:INK2,
+                transition:"all 0.2s",...sf,
+              }}>{label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{maxWidth:680,margin:"0 auto",padding:"24px 20px 48px"}}>
+
+        {/* ══ CHECKER ══ */}
+        {tab==="checker"&&(
+          <div>
+            <h2 style={{...pf,fontSize:22,fontWeight:600,color:INK,margin:"0 0 6px"}}>Check a product</h2>
+            <p style={{color:INK2,fontSize:13,margin:"0 0 20px",lineHeight:1.6}}>
+              Search by product name or paste an ingredient list. Results weighted by your actual patch test scores.
+            </p>
+
+            {/* Mode toggle */}
+            <div style={{display:"flex",gap:8,marginBottom:20}}>
+              {[["search","🔍 Search by name"],["paste","📋 Paste ingredients"]].map(([m,label])=>(
+                <button key={m} onClick={()=>{setMode(m);setResults(null);setSearchResults(null);setSearchError(null);}} style={{
+                  flex:1,padding:"11px 16px",border:`1.5px solid ${mode===m?GOLD:BORDER}`,
+                  borderRadius:12,cursor:"pointer",fontSize:13,fontWeight:mode===m?600:400,
+                  background:mode===m?GOLD_LT:CARD,color:mode===m?"#6B4A10":INK2,...sf,
+                  transition:"all 0.2s",
+                }}>{label}</button>
+              ))}
+            </div>
+
+            {/* SEARCH MODE */}
+            {mode==="search"&&(
+              <div>
+                <div style={{display:"flex",gap:8,marginBottom:12}}>
+                  <input
+                    value={searchQ}
+                    onChange={e=>setSearchQ(e.target.value)}
+                    onKeyPress={e=>e.key==="Enter"&&searchProduct()}
+                    placeholder="e.g. Vanicream moisturizer, Neutrogena sunscreen..."
+                    style={{flex:1,padding:"12px 16px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,color:INK,...sf}}
+                  />
+                  <button onClick={searchProduct} style={{
+                    padding:"12px 20px",background:INK,color:CARD,border:"none",
+                    borderRadius:12,fontSize:13,fontWeight:600,cursor:"pointer",...sf,
+                  }}>
+                    {searching?"…":"Search"}
+                  </button>
+                </div>
+
+                {searching&&(
+                  <div style={{textAlign:"center",padding:"24px 0",color:INK3,fontSize:13}}>
+                    <div style={{width:20,height:20,border:`2px solid ${BORDER}`,borderTopColor:GOLD,borderRadius:"50%",animation:"spin 0.7s linear infinite",margin:"0 auto 10px"}}/>
+                    Searching product database…
+                  </div>
+                )}
+
+                {searchError&&(
+                  <div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",fontSize:13,color:INK2,lineHeight:1.6}}>
+                    {searchError}
+                  </div>
+                )}
+
+                {searchResults&&(
+                  <div className="fade-up">
+                    <div style={{fontSize:11,fontWeight:700,color:INK3,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10}}>
+                      Select a product
+                    </div>
+                    {searchResults.map((p,i)=>(
+                      <div key={i} onClick={()=>checkFromSearch(p)} style={{
+                        background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,
+                        padding:"14px 16px",marginBottom:8,cursor:"pointer",
+                        transition:"border-color 0.15s",
+                      }}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
+                        <div style={{fontWeight:600,fontSize:14,color:INK,marginBottom:3}}>
+                          {p.product_name||p.product_name_en||"Unnamed product"}
+                        </div>
+                        {p.brands&&<div style={{fontSize:12,color:INK3,marginBottom:5}}>{p.brands}</div>}
+                        <div style={{fontSize:11,color:INK3,lineHeight:1.5,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                          {(p.ingredients_text_en||p.ingredients_text||"").slice(0,120)}…
+                        </div>
+                        <div style={{fontSize:11,color:GOLD,fontWeight:600,marginTop:6}}>Tap to check ingredients →</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {results&&(
+                  <div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                      <div style={{fontSize:11,fontWeight:700,color:INK3,letterSpacing:1,textTransform:"uppercase"}}>Results</div>
+                      <button onClick={()=>{setResults(null);setSearchQ("");setSearchResults(null);}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:INK3,...sf}}>Clear</button>
+                    </div>
+                    <ResultsView results={results} expanded={expanded} setExpanded={setExpanded} animKey={animKey}/>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PASTE MODE */}
+            {mode==="paste"&&(
+              <div>
+                <textarea
+                  value={pasteInput}
+                  onChange={e=>{setPasteInput(e.target.value);setResults(null);}}
+                  placeholder="Paste ingredient list here…&#10;&#10;e.g. Water, Glycerin, Fragrance, Oxybenzone, Cetyl Alcohol..."
+                  style={{width:"100%",minHeight:130,padding:"14px 16px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,color:INK,fontFamily:"'Inter',sans-serif",lineHeight:1.7,resize:"vertical"}}
+                />
+                <button onClick={checkPaste} style={{width:"100%",marginTop:10,padding:14,background:INK,color:CARD,border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",letterSpacing:0.3,...sf}}>
+                  Check Ingredients
+                </button>
+                {results&&(
+                  <div>
+                    <ResultsView results={results} expanded={expanded} setExpanded={setExpanded} animKey={animKey}/>
+                    <button onClick={()=>{setPasteInput("");setResults(null);setExpanded(null);}} style={{width:"100%",padding:12,background:"transparent",color:INK2,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,fontWeight:500,cursor:"pointer",marginTop:10,...sf}}>
+                      Clear & check another
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══ SAFE PRODUCTS ══ */}
+        {tab==="products"&&(
+          <div>
+            <h2 style={{...pf,fontSize:22,fontWeight:600,color:INK,margin:"0 0 6px"}}>Verified safe products</h2>
+            <p style={{color:INK2,fontSize:13,margin:"0 0 18px",lineHeight:1.6}}>Every product manually verified against all 13 of your allergens.</p>
+            <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+              <input value={productSearch} onChange={e=>setProductSearch(e.target.value)} placeholder="Search products..."
+                style={{flex:1,minWidth:150,padding:"10px 14px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:10,fontSize:13,color:INK,...sf}}/>
+              <select value={productCat} onChange={e=>setProductCat(e.target.value)}
+                style={{padding:"10px 14px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:10,fontSize:13,color:INK,cursor:"pointer",...sf}}>
+                {CATEGORIES.map(c=><option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div style={{fontSize:11,color:INK3,letterSpacing:0.5,marginBottom:12}}>{filtered.length} PRODUCTS</div>
+            {filtered.map(p=>(
+              <div key={p.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"16px 18px",marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:3}}>
+                      <span style={{fontWeight:600,fontSize:14,color:INK}}>{p.name}</span>
+                      <span style={{background:GOLD_LT,color:GOLD,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20}}>{p.category}</span>
+                    </div>
+                    <div style={{fontSize:12,color:INK3,marginBottom:5}}>{p.brand}</div>
+                    <div style={{fontSize:13,color:INK2,lineHeight:1.5}}>{p.notes}</div>
+                    <div style={{fontSize:11,color:INK3,marginTop:5}}>{p.where}</div>
+                  </div>
+                  <div style={{width:26,height:26,borderRadius:"50%",background:GREEN_LT,border:`1px solid ${GREEN_BD}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:GREEN,fontWeight:700}}>✓</div>
+                </div>
+              </div>
+            ))}
+            {filtered.length===0&&<div style={{textAlign:"center",color:INK3,padding:"40px 0",fontSize:14}}>No products found.</div>}
+          </div>
+        )}
+
+        {/* ══ MY ALLERGENS ══ */}
+        {tab==="allergens"&&(
+          <div>
+            <h2 style={{...pf,fontSize:22,fontWeight:600,color:INK,margin:"0 0 6px"}}>Your allergens</h2>
+            <p style={{color:INK2,fontSize:13,margin:"0 0 18px",lineHeight:1.6}}>ACDS core series · 06/04/2026 · 108 patches · Tap any allergen for clinical notes.</p>
+            <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:18,marginBottom:20}}>
+              <div style={{fontWeight:600,fontSize:14,color:INK,marginBottom:12}}>Understanding your scores</div>
+              {[[RED,"+3 Strong","Hard avoid at any concentration. Tixocortol (steroid allergy) — tell every doctor."],[GOLD,"+2 Moderate","Clear reaction. Avoid in all products. 7 allergens including fragrance mixes, oxybenzone, BHA."],[GOLD_MID,"+1 Mild","Low-grade reaction. Context matters. You may tolerate low concentrations. Watch for stacking."]].map(([c,score,text])=>(
+                <div key={score} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
+                  <div style={{display:"flex",gap:3,marginTop:4,flexShrink:0}}>
+                    {[1,2,3].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:score==="+3 Strong"?(i<=3?c:BORDER):score==="+2 Moderate"?(i<=2?c:BORDER):(i<=1?c:BORDER)}}/>)}
+                  </div>
+                  <div><span style={{fontWeight:700,color:c,fontSize:13}}>{score} </span><span style={{fontSize:13,color:INK2,lineHeight:1.6}}>{text}</span></div>
+                </div>
+              ))}
+            </div>
+            {["Fragrance","Sunscreen","Corticosteroid","Botanical","Fragrance / Botanical","Preservative","Animal Derivative","Bee Product","Metal","Resin"].map(cat=>{
+              const catA=ALLERGENS.filter(a=>a.category===cat);
+              if(!catA.length) return null;
+              return(
+                <div key={cat} style={{marginBottom:18}}>
+                  <div style={{fontSize:10,fontWeight:700,color:GOLD,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>{cat}</div>
+                  {catA.map(a=>{
+                    const r=RISK[a.riskProfile]||RISK.caution;
+                    const isExp=expanded===a.id+"_a";
+                    return(
+                      <div key={a.id} onClick={()=>setExpanded(isExp?null:a.id+"_a")} style={{background:CARD,border:`1px solid ${isExp?r.border:BORDER}`,borderRadius:12,padding:"13px 16px",marginBottom:8,cursor:"pointer",transition:"border-color 0.15s"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                            <span style={{fontWeight:600,fontSize:13,color:INK}}>{a.name}</span>
+                            <SeverityDots severity={a.severity}/>
+                            <span style={{background:r.bg,color:r.color,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20}}>{r.label}</span>
+                          </div>
+                          <span style={{color:INK3,fontSize:12}}>{isExp?"▲":"▼"}</span>
+                        </div>
+                        {isExp&&<div className="fade-in">
+                          <div style={{fontSize:13,color:INK2,lineHeight:1.7,margin:"12px 0 10px",paddingTop:12,borderTop:`1px solid ${BORDER}`}}>{a.clinicalNote}</div>
+                          <div style={{fontSize:10,fontWeight:700,color:INK3,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Also listed as</div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                            {a.terms.map(t=><span key={t} style={{background:CARD2,border:`1px solid ${BORDER}`,color:INK2,fontSize:11,padding:"2px 8px",borderRadius:20}}>{t}</span>)}
+                          </div>
+                        </div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+            <div style={{background:INK,borderRadius:14,padding:20,marginTop:4}}>
+              <div style={{fontWeight:600,color:GOLD,fontSize:13,marginBottom:12,letterSpacing:0.3}}>For doctors & product inquiries</div>
+              <div style={{fontFamily:"monospace",fontSize:11,color:"#C8C0B8",lineHeight:2}}>
+                {ALLERGENS.map((a,i)=><div key={a.id}>{i+1}. {a.name} ({a.severity===3?"Strong +3":a.severity===2?"Moderate +2":"Mild +1"}) — {a.terms.slice(0,3).join(", ")}</div>)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{borderTop:`1px solid ${BORDER}`,padding:"14px 24px",textAlign:"center",background:CARD}}>
+        <span style={{...pf,color:GOLD,fontSize:14,letterSpacing:0.3}}>Allergyze</span>
+        <span style={{color:INK3,fontSize:11,margin:"0 10px"}}>·</span>
+        <span style={{color:INK3,fontSize:11}}>Always verify physical labels · Not medical advice · Formulas change</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
