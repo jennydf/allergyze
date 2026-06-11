@@ -13,7 +13,6 @@
   body { font-family:'Inter',sans-serif; background:#FAF8F5; color:#1A1714; -webkit-font-smoothing:antialiased; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
   @keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
-  @keyframes spin { to{transform:rotate(360deg);} }
   .fade-up { animation:fadeUp 0.35s ease forwards; }
   .fade-in { animation:fadeIn 0.25s ease forwards; }
   textarea:focus, input:focus { outline:none; border-color:#B8924A !important; }
@@ -25,53 +24,126 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-
 const GOLD='#B8924A',GOLD_LT='#F0E6D3',GOLD_MID='#D4AA72';
 const BASE='#FAF8F5',CARD='#FFFFFF',CARD2='#F5F2ED',BORDER='#E8E0D4';
 const INK='#1A1714',INK2='#5C5248',INK3='#9C8E82';
 const RED='#C0392B',RED_LT='#FDF2F1',RED_BD='#F0C4C0';
 const GREEN='#2E7D5E',GREEN_LT='#EDF7F2',GREEN_BD='#A8D5C2';
 
-const ALLERGENS = [
-  {id:"fragrance1",name:"Fragrance Mix 1",severity:2,category:"Fragrance",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Avoid in all leave-on AND rinse-off products. Parfum on any label is a hard no.",
-   terms:["fragrance","parfum","eugenol","isoeugenol","cinnamal","cinnamic aldehyde","cinnamic alcohol","amylcinnamic aldehyde","amyl cinnamal","hydroxycitronellal","oakmoss","evernia prunastri","geraniol","linalool","limonene"]},
-  {id:"fragrance2",name:"Fragrance Mix 2",severity:2,category:"Fragrance",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Covers a separate set of fragrance chemicals. Your fragrance sensitivity is broad.",
-   terms:["fragrance","parfum","coumarin","lyral","hydroxyisohexyl 3-cyclohexene carboxaldehyde","citronellol","farnesol","citral","alpha-hexylcinnamic aldehyde","hexyl cinnamal"]},
-  {id:"tixocortol",name:"Tixocortol-21-Pivalate",severity:3,category:"Corticosteroid",riskProfile:"avoid",
-   clinicalNote:"STRONG reaction — your highest score. Steroid allergy marker. Tell every doctor before any prescription or procedure.",
-   terms:["tixocortol","hydrocortisone","cortisone","cortisol","pivalate","budesonide"]},
-  {id:"oxybenzone",name:"Oxybenzone",severity:2,category:"Sunscreen",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Found in most chemical sunscreens. Use mineral-only sunscreens exclusively.",
-   terms:["oxybenzone","benzophenone-3","2-hydroxy-4-methoxy-benzophenone","2-hydroxy-4-methoxybenzophenone"]},
-  {id:"octinoxate",name:"Ethylhexyl Methoxycinnamate",severity:2,category:"Sunscreen",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Also called Octinoxate. One of the most common chemical sunscreen filters.",
-   terms:["ethylhexyl methoxycinnamate","octinoxate","octyl methoxycinnamate","2-ethylhexyl-4-methoxycinnamate","2-ethylhexyl methoxycinnamate"]},
-  {id:"propolis",name:"Propolis",severity:2,category:"Bee Product",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Common in natural skincare, throat lozenges, and bee-derived products.",
-   terms:["propolis","bee glue","cera flava"]},
-  {id:"amerchol",name:"Amerchol / Lanolin",severity:1,category:"Animal Derivative",riskProfile:"caution",
-   clinicalNote:"Mild reaction (+1). Threshold appears dose-dependent. Avoid products where lanolin is a primary ingredient.",
-   terms:["amerchol","lanolin","lanolin alcohol","wool wax","wool alcohol","adeps lanae","anhydrous lanolin","acetylated lanolin"]},
-  {id:"gold",name:"Gold Sodium Thiosulfate",severity:1,category:"Metal",riskProfile:"caution",
-   clinicalNote:"Mild reaction (+1). Avoid gold jewelry worn against skin for extended periods. Flag with dentist.",
-   terms:["gold sodium thiosulfate","gold"]},
-  {id:"ylangylang",name:"Ylang Ylang",severity:1,category:"Fragrance / Botanical",riskProfile:"caution",
-   clinicalNote:"Mild reaction (+1). Avoid in leave-on products; may tolerate in rinse-off at very low concentration.",
-   terms:["ylang ylang","cananga odorata","cananga oil"]},
-  {id:"compositae",name:"Compositae Mix",severity:1,category:"Botanical",riskProfile:"caution",
-   clinicalNote:"Mild reaction (+1). Avoid as a primary ingredient and avoid stacking multiple Compositae products.",
-   terms:["compositae","chamomile","chamomilla","matricaria","calendula","arnica","echinacea","chrysanthemum","sunflower","helianthus","feverfew","tanacetum","yarrow","achillea","mugwort","artemisia"]},
-  {id:"abitol",name:"Abietic Acid / Abitol",severity:2,category:"Resin",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Found in adhesives, rosin, and some haircare products.",
-   terms:["abietic acid","abitol","colophony","rosin","pine resin","tall oil"]},
-  {id:"bha",name:"BHA (Butylhydroxyanisole)",severity:2,category:"Preservative",riskProfile:"avoid",
-   clinicalNote:"Moderate reaction. Present in foods AND cosmetics. Check food labels — chips, crackers, cereals.",
-   terms:["butylhydroxyanisole","bha","butylated hydroxyanisole"]},
-  {id:"phenylsalicylate",name:"Phenyl Salicylate",severity:1,category:"Sunscreen",riskProfile:"caution",
-   clinicalNote:"Mild reaction (+1). An older UV filter. Avoid in sunscreens and UV-protective products.",
-   terms:["phenyl salicylate","salol"]},
+const ALLERGENS=[
+  {id:"fragrance1",name:"Fragrance Mix 1",severity:2,category:"Fragrance",riskProfile:"avoid",clinicalNote:"Moderate reaction. Avoid in all leave-on AND rinse-off products. Parfum on any label is a hard no.",terms:["fragrance","parfum","eugenol","isoeugenol","cinnamal","cinnamic aldehyde","cinnamic alcohol","amylcinnamic aldehyde","amyl cinnamal","hydroxycitronellal","oakmoss","evernia prunastri","geraniol","linalool","limonene"]},
+  {id:"fragrance2",name:"Fragrance Mix 2",severity:2,category:"Fragrance",riskProfile:"avoid",clinicalNote:"Moderate reaction. Covers a separate set of fragrance chemicals. Your fragrance sensitivity is broad.",terms:["fragrance","parfum","coumarin","lyral","hydroxyisohexyl 3-cyclohexene carboxaldehyde","citronellol","farnesol","citral","alpha-hexylcinnamic aldehyde","hexyl cinnamal"]},
+  {id:"tixocortol",name:"Tixocortol-21-Pivalate",severity:3,category:"Corticosteroid",riskProfile:"avoid",clinicalNote:"STRONG reaction. Steroid allergy marker. Tell every doctor before any prescription or procedure.",terms:["tixocortol","hydrocortisone","cortisone","cortisol","pivalate","budesonide"]},
+  {id:"oxybenzone",name:"Oxybenzone",severity:2,category:"Sunscreen",riskProfile:"avoid",clinicalNote:"Moderate reaction. Found in most chemical sunscreens. Use mineral-only sunscreens exclusively.",terms:["oxybenzone","benzophenone-3","2-hydroxy-4-methoxy-benzophenone","2-hydroxy-4-methoxybenzophenone"]},
+  {id:"octinoxate",name:"Ethylhexyl Methoxycinnamate",severity:2,category:"Sunscreen",riskProfile:"avoid",clinicalNote:"Moderate reaction. Also called Octinoxate. One of the most common chemical sunscreen filters.",terms:["ethylhexyl methoxycinnamate","octinoxate","octyl methoxycinnamate","2-ethylhexyl-4-methoxycinnamate","2-ethylhexyl methoxycinnamate"]},
+  {id:"propolis",name:"Propolis",severity:2,category:"Bee Product",riskProfile:"avoid",clinicalNote:"Moderate reaction. Common in natural skincare, throat lozenges, and bee-derived products.",terms:["propolis","bee glue","cera flava"]},
+  {id:"amerchol",name:"Amerchol / Lanolin",severity:1,category:"Animal Derivative",riskProfile:"caution",clinicalNote:"Mild reaction (+1). Threshold appears dose-dependent. Avoid products where lanolin is a primary ingredient.",terms:["amerchol","lanolin","lanolin alcohol","wool wax","wool alcohol","adeps lanae","anhydrous lanolin","acetylated lanolin"]},
+  {id:"gold",name:"Gold Sodium Thiosulfate",severity:1,category:"Metal",riskProfile:"caution",clinicalNote:"Mild reaction (+1). Avoid gold jewelry worn against skin for extended periods.",terms:["gold sodium thiosulfate","gold"]},
+  {id:"ylangylang",name:"Ylang Ylang",severity:1,category:"Fragrance / Botanical",riskProfile:"caution",clinicalNote:"Mild reaction (+1). Avoid in leave-on products.",terms:["ylang ylang","cananga odorata","cananga oil"]},
+  {id:"compositae",name:"Compositae Mix",severity:1,category:"Botanical",riskProfile:"caution",clinicalNote:"Mild reaction (+1). Avoid as a primary ingredient and avoid stacking multiple Compositae products.",terms:["compositae","chamomile","chamomilla","matricaria","calendula","arnica","echinacea","chrysanthemum","sunflower","helianthus","feverfew","tanacetum","yarrow","achillea","mugwort","artemisia"]},
+  {id:"abitol",name:"Abietic Acid / Abitol",severity:2,category:"Resin",riskProfile:"avoid",clinicalNote:"Moderate reaction. Found in adhesives, rosin, and some haircare products.",terms:["abietic acid","abitol","colophony","rosin","pine resin","tall oil"]},
+  {id:"bha",name:"BHA (Butylhydroxyanisole)",severity:2,category:"Preservative",riskProfile:"avoid",clinicalNote:"Moderate reaction. Present in foods AND cosmetics. Check food labels.",terms:["butylhydroxyanisole","bha","butylated hydroxyanisole"]},
+  {id:"phenylsalicylate",name:"Phenyl Salicylate",severity:1,category:"Sunscreen",riskProfile:"caution",clinicalNote:"Mild reaction (+1). An older UV filter. Avoid in sunscreens.",terms:["phenyl salicylate","salol"]},
+];
+
+const PRODUCT_DB=[
+  {name:"Vanicream Gentle Facial Cleanser",brand:"Vanicream",category:"Cleanser",ingredients:"water lauryl glucoside coco-glucoside acrylates copolymer sodium cocoyl glutamate sodium cocoyl glycinate glycerin sucrose cocoate panthenol pentylene glycol 1,2-hexanediol disodium edta caprylyl glycol sodium hydroxide sodium chloride"},
+  {name:"Vanicream Facial Moisturizer SPF 30",brand:"Vanicream",category:"Moisturizer + SPF",ingredients:"zinc oxide 19.5% water c12-15 alkyl benzoate isopentyldiol squalane glycerin coco-caprylate caprate glyceryl stearate peg-100 stearate polyhydroxystearic acid cetearyl alcohol sucrose stearate ceramide eop ceramide ng ceramide np ceramide as ceramide ap carnosine phytosterols hydrogenated lecithin dimethicone triethoxycaprylylsilane polyacrylate crosspolymer-11 caprylyl glycol 1,2-hexanediol"},
+  {name:"Vanicream Daily Facial Moisturizer",brand:"Vanicream",category:"Moisturizer",ingredients:"water squalane glycerin pentylene glycol polyglyceryl-2 stearate glyceryl stearate stearyl alcohol hyaluronic acid ceramide eop ceramide ng ceramide np ceramide as ceramide ap carnosine hydrogenated lecithin phytosterols caprylyl glycol polyacrylate crosspolymer-11 1,2-hexanediol"},
+  {name:"Vanicream Vitamin C Serum",brand:"Vanicream",category:"Serum",ingredients:"water glycerin diisooctyl succinate tetrahexyldecyl ascorbate pentylene glycol polyglyceryl-2 stearate carnosine ceramide np ceramide eop ceramide ap ceramide ng ceramide as phytosterols glyceryl stearate stearyl alcohol hydrogenated lecithin 1,2-hexanediol polyacrylate crosspolymer-6 citric acid caprylyl glycol"},
+  {name:"Vanicream SPF 50 Mineral Sunscreen",brand:"Vanicream",category:"Sunscreen",ingredients:"zinc oxide 12% water c12-15 alkyl benzoate glycerin coco-caprylate caprate glyceryl stearate peg-100 stearate polyhydroxystearic acid cetearyl alcohol sucrose stearate caprylyl glycol 1,2-hexanediol squalane tribehenin"},
+  {name:"Vanicream Clinical Strength Antiperspirant",brand:"Vanicream",category:"Deodorant",ingredients:"aluminum zirconium trichlorohydrex gly 20% cyclopentasiloxane hydrogenated poly c6-14 olefin stearyl alcohol phenyl trimethicone hydrogenated castor oil cetyl alcohol silica"},
+  {name:"Vanicream Enhanced Moisturizer",brand:"Vanicream",category:"Body Moisturizer",ingredients:"water glycerin petrolatum dimethicone cetearyl alcohol ceteareth-20 sorbitol propylene glycol carbomer sodium hydroxide disodium edta"},
+  {name:"Vanicream Gentle Body Wash",brand:"Vanicream",category:"Body Wash",ingredients:"water lauryl glucoside coco-glucoside glycerin sodium cocoyl glutamate panthenol pentylene glycol 1,2-hexanediol caprylyl glycol disodium edta citric acid"},
+  {name:"Vanicream Shampoo",brand:"Vanicream",category:"Shampoo",ingredients:"water lauryl glucoside coco-glucoside acrylates copolymer sodium cocoyl glutamate sodium cocoyl glycinate glycerin sucrose cocoate panthenol pentylene glycol 1,2-hexanediol disodium edta caprylyl glycol sodium hydroxide sodium chloride"},
+  {name:"Vanicream Conditioner",brand:"Vanicream",category:"Conditioner",ingredients:"purified water cetearyl alcohol hydrogenated polydecene propanediol distearoylethyl dimonium chloride glycerin ceteareth-20 panthenol 1,2-hexanediol arginine caprylyl glycol"},
+  {name:"Neutrogena Hydro Boost Water Gel",brand:"Neutrogena",category:"Moisturizer",ingredients:"water dimethicone glycerin cetearyl olivate sorbitan olivate polyacrylamide carbomer trehalose dimethiconol chlorphenesin laureth-7 sodium hyaluronate ethylhexylglycerin sodium hydroxide"},
+  {name:"Neutrogena Hydro Boost+ Caffeine Eye Gel",brand:"Neutrogena",category:"Eye Cream",ingredients:"water glycerin dimethicone cetearyl olivate caffeine sorbitan olivate caprylyl glycol panthenol ethylhexylglycerin dimethiconol acetyl glucosamine sodium hyaluronate n-hydroxysuccinimide chrysin palmitoyl tripeptide-1 palmitoyl tetrapeptide-7"},
+  {name:"Neutrogena Ultra Sheer Dry Touch SPF 55",brand:"Neutrogena",category:"Sunscreen",ingredients:"avobenzone 3% homosalate 10% octisalate 5% octocrylene 2.8% oxybenzone 6% water ethylhexyl palmitate silica dimethicone phenoxyethanol fragrance"},
+  {name:"Neutrogena Hydro Boost Cleanser",brand:"Neutrogena",category:"Cleanser",ingredients:"water glycerin sodium c14-16 olefin sulfonate sodium lauroyl sarcosinate cocamidopropyl betaine sodium chloride citric acid phenoxyethanol fragrance"},
+  {name:"Neutrogena Norwegian Formula Hand Cream",brand:"Neutrogena",category:"Hand Cream",ingredients:"water glycerin cetyl alcohol stearyl alcohol dimethicone sodium lauryl sulfate fragrance methylparaben carbomer sodium hydroxide"},
+  {name:"Neutrogena Oil-Free Acne Wash",brand:"Neutrogena",category:"Cleanser",ingredients:"water salicylic acid 2% cocamidopropyl betaine sodium c14-16 olefin sulfonate glycerin fragrance sodium chloride methylparaben propylparaben"},
+  {name:"CeraVe Moisturizing Cream",brand:"CeraVe",category:"Moisturizer",ingredients:"water glycerin caprylic capric triglyceride cetearyl alcohol cetyl alcohol ceramide np ceramide ap ceramide eop carbomer dimethicone ceteareth-20 behentrimonium methosulfate methylparaben sodium lauroyl lactylate cholesterol disodium edta propylparaben hyaluronic acid phytosphingosine xanthan gum"},
+  {name:"CeraVe Hydrating Cleanser",brand:"CeraVe",category:"Cleanser",ingredients:"water glycerin behentrimonium methosulfate cetearyl alcohol ceramide np ceramide ap ceramide eop carbomer cholesterol disodium edta hyaluronic acid niacinamide phytosphingosine polysorbate 20 propylene glycol sodium lauroyl sarcosinate xanthan gum"},
+  {name:"CeraVe AM Facial Moisturizer SPF 30",brand:"CeraVe",category:"Moisturizer + SPF",ingredients:"homosalate 9% octinoxate 7.5% octisalate 5% water glycerin ceramide np ceramide ap ceramide eop niacinamide hyaluronic acid dimethicone phenoxyethanol carbomer cetearyl alcohol ceteareth-20 cholesterol disodium edta methylparaben propylparaben sodium lauroyl lactylate"},
+  {name:"CeraVe Foaming Facial Cleanser",brand:"CeraVe",category:"Cleanser",ingredients:"water sodium lauroyl sarcosinate niacinamide glycerin ceramide np ceramide ap ceramide eop hyaluronic acid sodium hydroxide cholesterol carbomer citric acid behentrimonium methosulfate disodium edta phytosphingosine"},
+  {name:"CeraVe PM Facial Moisturizing Lotion",brand:"CeraVe",category:"Moisturizer",ingredients:"water glycerin niacinamide caprylic capric triglyceride cetyl alcohol ceramide np ceramide ap ceramide eop dimethicone hyaluronic acid sodium lauroyl lactylate carbomer sodium hydroxide cholesterol disodium edta methylparaben phenoxyethanol phytosphingosine"},
+  {name:"CeraVe SA Smoothing Cleanser",brand:"CeraVe",category:"Cleanser",ingredients:"water sodium lauroyl sarcosinate salicylic acid niacinamide glycerin ceramide np ceramide ap ceramide eop sodium hydroxide cholesterol carbomer citric acid"},
+  {name:"CeraVe Eye Repair Cream",brand:"CeraVe",category:"Eye Cream",ingredients:"water glycerin niacinamide dimethicone caprylic capric triglyceride ceramide np ceramide ap ceramide eop hyaluronic acid sodium lauroyl lactylate carbomer sodium hydroxide cholesterol disodium edta methylparaben phenoxyethanol phytosphingosine"},
+  {name:"La Roche-Posay Toleriane Hydrating Gentle Cleanser",brand:"La Roche-Posay",category:"Cleanser",ingredients:"water glycerin sodium cocoyl glutamate niacinamide ceramide np sodium chloride disodium edta capryloyl glycine"},
+  {name:"La Roche-Posay Anthelios Mineral SPF 50",brand:"La Roche-Posay",category:"Sunscreen",ingredients:"titanium dioxide 25% zinc oxide 10% water dimethicone glycerin silica cyclopentasiloxane disteardimonium hectorite fragrance"},
+  {name:"La Roche-Posay Toleriane Double Repair Moisturizer",brand:"La Roche-Posay",category:"Moisturizer",ingredients:"water glycerin dimethicone niacinamide ceramide np serine glyceryl stearate peg-100 stearate carbomer sodium hyaluronate methylparaben propylparaben phenoxyethanol xylitol"},
+  {name:"La Roche-Posay Effaclar Gel Cleanser",brand:"La Roche-Posay",category:"Cleanser",ingredients:"water sodium laureth sulfate cocamidopropyl betaine zinc pidolate glycerin niacinamide sodium chloride citric acid sodium benzoate phenoxyethanol"},
+  {name:"La Roche-Posay Cicaplast Baume B5",brand:"La Roche-Posay",category:"Body Moisturizer",ingredients:"water glycerin shea butter panthenol madecassoside allantoin niacinamide zinc sulfate manganese sulfate copper sulfate disodium edta"},
+  {name:"Cetaphil Gentle Skin Cleanser",brand:"Cetaphil",category:"Cleanser",ingredients:"water cetyl alcohol propylene glycol sodium lauryl sulfate stearyl alcohol methylparaben propylparaben butylparaben"},
+  {name:"Cetaphil Daily Facial Moisturizer SPF 50",brand:"Cetaphil",category:"Moisturizer + SPF",ingredients:"zinc oxide 7% titanium dioxide 4.2% water glycerin niacinamide dimethicone panthenol sodium hyaluronate tocopheryl acetate cetearyl alcohol carbomer phenoxyethanol"},
+  {name:"Cetaphil Moisturizing Lotion",brand:"Cetaphil",category:"Body Moisturizer",ingredients:"water glycerin hydrogenated polyisobutene cetyl alcohol glyceryl stearate peg-30 stearate panthenol tocopheryl acetate dimethicone benzyl alcohol sodium hydroxide"},
+  {name:"Cetaphil Moisturizing Cream",brand:"Cetaphil",category:"Body Moisturizer",ingredients:"water glycerin petrolatum glycol distearate dimethicone cetyl alcohol tocopheryl acetate sodium cetearyl sulfate carbomer sodium hydroxide benzyl alcohol"},
+  {name:"EltaMD UV Clear SPF 46",brand:"EltaMD",category:"Sunscreen",ingredients:"zinc oxide 9.0% octinoxate 7.5% water niacinamide dimethicone cyclopentasiloxane sodium hyaluronate lactic acid tocopheryl acetate triethoxycaprylylsilane hydroxypropyl methylcellulose"},
+  {name:"EltaMD UV Pure SPF 47",brand:"EltaMD",category:"Sunscreen",ingredients:"zinc oxide 9% titanium dioxide 7.2% water cyclopentasiloxane dimethicone glycerin sodium hyaluronate triethoxycaprylylsilane"},
+  {name:"EltaMD UV Daily SPF 40",brand:"EltaMD",category:"Moisturizer + SPF",ingredients:"zinc oxide 9% octinoxate 7.5% water glycerin hyaluronic acid niacinamide dimethicone cyclopentasiloxane tocopheryl acetate lactic acid"},
+  {name:"SEEN Fragrance Free Shampoo",brand:"SEEN",category:"Shampoo",ingredients:"water sodium lauroyl methyl isethionate cocamidopropylamine oxide glycerin acrylates copolymer c13-15 alkane glycol distearate aminomethyl propanol guar hydroxypropyltrimonium chloride polyquaternium-7 tocopherol bisabolol citric acid phenoxyethanol ethylhexylglycerin sodium benzoate disodium edta"},
+  {name:"SEEN Fragrance Free Conditioner",brand:"SEEN",category:"Conditioner",ingredients:"water c13-15 alkane cetearyl alcohol cetyl palmitate stearamidopropyl dimethylamine behentrimonium chloride glycerin shea butter cetyl esters polysorbate 80 tocopherol bisabolol citric acid phenoxyethanol ethylhexylglycerin disodium edta"},
+  {name:"SEEN Magic Serum Fragrance Free",brand:"SEEN",category:"Hair Serum",ingredients:"ethylhexyl olivate c13-15 alkane squalane"},
+  {name:"Cleure Sunscreen SPF 30",brand:"Cleure",category:"Sunscreen",ingredients:"zinc oxide 9% titanium dioxide 4.51% purified water caprylic capric triglyceride cetearyl alcohol polyhydroxystearic acid glycerin stearic acid triethoxycaprylylsilane dimethicone phenoxyethanol ethylhexylglycerin sodium stearoyl glutamate"},
+  {name:"Drunk Elephant Protini Polypeptide Cream",brand:"Drunk Elephant",category:"Moisturizer",ingredients:"water lactobacillus ferment lysate filtrate glycerin niacinamide cetearyl alcohol glyceryl stearate palmitoyl tripeptide-38 sodium hyaluronate ceramide np panthenol allantoin tocopherol fragrance"},
+  {name:"Drunk Elephant C-Firma Fresh Day Serum",brand:"Drunk Elephant",category:"Serum",ingredients:"water ethoxydiglycol ascorbic acid glycerin propylene glycol ferulic acid panthenol sodium hyaluronate fragrance"},
+  {name:"Drunk Elephant Beste No 9 Jelly Cleanser",brand:"Drunk Elephant",category:"Cleanser",ingredients:"water glycerin poloxamer 184 peg-120 methyl glucose dioleate sodium cocoyl isethionate propylene glycol sodium chloride disodium edta phenoxyethanol ethylhexylglycerin"},
+  {name:"Tatcha The Water Cream",brand:"Tatcha",category:"Moisturizer",ingredients:"water glycerin dimethicone silica haematococcus pluvialis extract camellia japonica leaf extract sodium hyaluronate ceramide np fragrance phenoxyethanol"},
+  {name:"Tatcha The Rice Wash Cleanser",brand:"Tatcha",category:"Cleanser",ingredients:"water sodium c14-16 olefin sulfonate glycerin sodium cocoyl isethionate cocamidopropyl betaine oryza sativa rice bran extract camellia sinensis leaf extract fragrance"},
+  {name:"Supergoop Unseen Sunscreen SPF 40",brand:"Supergoop",category:"Sunscreen",ingredients:"homosalate 9% octisalate 4.9% octocrylene 4% avobenzone 3% water glycerin isododecane silica butylene glycol niacinamide fragrance ethylhexylglycerin phenoxyethanol"},
+  {name:"Supergoop Play Everyday Lotion SPF 50",brand:"Supergoop",category:"Sunscreen",ingredients:"avobenzone 3% homosalate 15% octisalate 5% octocrylene 10% oxybenzone 6% water glycerin dimethicone tocopheryl acetate fragrance"},
+  {name:"Blue Lizard Sensitive SPF 50",brand:"Blue Lizard",category:"Sunscreen",ingredients:"zinc oxide 10% titanium dioxide 5% water glycerin dimethicone cyclomethicone silica ethylhexylglycerin phenoxyethanol"},
+  {name:"Banana Boat Ultra Sport SPF 50",brand:"Banana Boat",category:"Sunscreen",ingredients:"avobenzone 3% homosalate 15% octisalate 5% octocrylene 10% oxybenzone 6% water glycerin fragrance"},
+  {name:"Coppertone Sport SPF 50",brand:"Coppertone",category:"Sunscreen",ingredients:"avobenzone 3% homosalate 15% octisalate 5% octocrylene 10% oxybenzone 6% water sd alcohol fragrance glycerin"},
+  {name:"Thinksport SPF 50+ Sunscreen",brand:"Thinksport",category:"Sunscreen",ingredients:"zinc oxide 20% water sunflower seed oil shea butter beeswax jojoba seed oil tocopheryl acetate"},
+  {name:"Badger SPF 30 Unscented",brand:"Badger",category:"Sunscreen",ingredients:"zinc oxide 22.5% sunflower seed oil beeswax jojoba seed oil tocopherol"},
+  {name:"Pantene Pro-V Daily Moisture Renewal Shampoo",brand:"Pantene",category:"Shampoo",ingredients:"water sodium lauryl sulfate sodium laureth sulfate glycol distearate dimethicone cocamidopropyl betaine fragrance citric acid panthenol niacinamide sodium benzoate"},
+  {name:"Head and Shoulders Classic Clean Shampoo",brand:"Head and Shoulders",category:"Shampoo",ingredients:"water sodium lauryl sulfate sodium laureth sulfate glycol distearate zinc pyrithione cocamidopropyl betaine fragrance dimethicone sodium benzoate"},
+  {name:"Dove Intensive Repair Shampoo",brand:"Dove",category:"Shampoo",ingredients:"water sodium laureth sulfate sodium lauryl sulfate cocamidopropyl betaine glycol distearate glycerin dimethicone fragrance sodium chloride citric acid"},
+  {name:"Dove Intensive Repair Conditioner",brand:"Dove",category:"Conditioner",ingredients:"water cetearyl alcohol behentrimonium chloride dimethicone glycerin stearamidopropyl dimethylamine fragrance citric acid disodium edta methylparaben"},
+  {name:"Color WOW Root Cover Up Dark Brown",brand:"Color WOW",category:"Hair Color",ingredients:"mica iron oxides titanium dioxide"},
+  {name:"NuBeauti Root Touch Up Powder Dark Brown",brand:"NuBeauti",category:"Hair Color",ingredients:"mica titanium dioxide zinc oxide iron oxides ultramarine blue"},
+  {name:"Madison Reed Root Touch-Up Mascara Dark Brown",brand:"Madison Reed",category:"Hair Color",ingredients:"water mica vp va copolymer cetyl alcohol ceteareth-25 pentylene glycol isotridecyl isononanoate glycerin stearyl alcohol cetearyl alcohol hydrogenated palm oil phenoxyethanol xanthan gum triethoxycaprylylsilane argania spinosa kernel oil butylene glycol citric acid panax ginseng root extract glycyrrhiza glabra licorice leaf extract iron oxides"},
+  {name:"Dove Original Beauty Bar",brand:"Dove",category:"Body Wash",ingredients:"sodium lauroyl isethionate stearic acid sodium tallowate lauric acid sodium isethionate water sodium stearate cocamidopropyl betaine sodium cocoate fragrance sodium chloride tetrasodium edta titanium dioxide"},
+  {name:"Dove Deep Moisture Body Wash",brand:"Dove",category:"Body Wash",ingredients:"water sodium laureth sulfate cocamidopropyl betaine glycol distearate glycerin lauric acid fragrance citric acid sodium chloride"},
+  {name:"Aveeno Daily Moisturizing Lotion",brand:"Aveeno",category:"Body Moisturizer",ingredients:"water glycerin distearyldimonium chloride petrolatum isopropyl palmitate cetyl alcohol avena sativa oat kernel flour benzyl alcohol sodium chloride titanium dioxide"},
+  {name:"Lubriderm Daily Moisture Lotion",brand:"Lubriderm",category:"Body Moisturizer",ingredients:"water mineral oil petrolatum sorbitol glycerin stearic acid lanolin cetyl alcohol triethanolamine dimethicone methylparaben propylparaben fragrance"},
+  {name:"Eucerin Original Healing Cream",brand:"Eucerin",category:"Body Moisturizer",ingredients:"water petrolatum mineral oil ceresin lanolin alcohol methylchloroisothiazolinone methylisothiazolinone"},
+  {name:"Vaseline Original Petroleum Jelly",brand:"Vaseline",category:"Body Moisturizer",ingredients:"100% white petrolatum"},
+  {name:"Aquaphor Healing Ointment",brand:"Aquaphor",category:"Body Moisturizer",ingredients:"petrolatum 41% mineral oil ceresin lanolin alcohol panthenol glycerin bisabolol"},
+  {name:"Dove Original Antiperspirant",brand:"Dove",category:"Deodorant",ingredients:"aluminum zirconium tetrachlorohydrex gly 15.2% cyclopentasiloxane stearyl alcohol peg-8 distearate fragrance dimethicone helianthus annuus sunflower seed oil"},
+  {name:"Secret Outlast Antiperspirant",brand:"Secret",category:"Deodorant",ingredients:"aluminum zirconium tetrachlorohydrex gly 18% cyclopentasiloxane dimethicone stearyl alcohol peg-8 distearate fragrance"},
+  {name:"Native Deodorant Coconut and Vanilla",brand:"Native",category:"Deodorant",ingredients:"caprylic capric triglyceride beeswax ozokerite magnesium hydroxide cocos nucifera coconut oil tapioca starch fragrance sodium bicarbonate"},
+  {name:"Schmidt's Natural Deodorant Lavender Sage",brand:"Schmidt's",category:"Deodorant",ingredients:"baking soda arrowroot powder shea butter coconut oil fragrance lavandula angustifolia lavender oil salvia officinalis sage oil tocopherol"},
+  {name:"Mitchum Unscented Antiperspirant",brand:"Mitchum",category:"Deodorant",ingredients:"aluminum zirconium tetrachlorohydrex gly 20% cyclopentasiloxane dimethicone stearyl alcohol peg-8 distearate"},
+  {name:"O'Keeffe's Lip Repair",brand:"O'Keeffe's",category:"Lip Balm",ingredients:"beeswax dimethicone petrolatum hydrogenated poly c6-14 olefin phenyl trimethicone prunus amygdalus dulcis sweet almond oil butyrospermum parkii shea butter trimethylpentanediol adipic acid glycerin crosspolymer hydrogenated polyisobutene polysilicone-11 sodium saccharin ethylene propylene styrene copolymer butylene ethylene styrene copolymer pentaerythrityl tetra-di-t-butyl hydroxyhydrocinnamate"},
+  {name:"O'Keeffe's Lip Repair Night Formula",brand:"O'Keeffe's",category:"Lip Balm",ingredients:"dimethicone beeswax petrolatum butyrospermum parkii shea butter prunus amygdalus dulcis sweet almond oil hydrogenated poly c6-14 olefin simmondsia chinensis jojoba seed oil polysilicone-11 tocopheryl acetate cocos nucifera coconut oil pentaerythrityl tetra-di-t-butyl hydroxyhydrocinnamate"},
+  {name:"ChapStick Original",brand:"ChapStick",category:"Lip Balm",ingredients:"camphor 1% menthol 0.6% white petrolatum 41% arachidyl propionate carnauba wax cetyl alcohol fragrance isopropyl lanolate isopropyl myristate lanolin methylparaben mineral oil phenyl trimethicone titanium dioxide"},
+  {name:"Burt's Bees Original Beeswax Lip Balm",brand:"Burt's Bees",category:"Lip Balm",ingredients:"beeswax coconut oil lanolin comfrey root extract fragrance peppermint oil rosemary leaf extract sunflower seed oil tocopherol"},
+  {name:"Vaseline Lip Therapy Original",brand:"Vaseline",category:"Lip Balm",ingredients:"white petrolatum 100%"},
+  {name:"EOS Smooth Sphere Lip Balm",brand:"EOS",category:"Lip Balm",ingredients:"beeswax shea butter jojoba seed oil sunflower seed oil fragrance tocopheryl acetate calendula officinalis flower extract"},
+  {name:"Carmex Classic Lip Balm",brand:"Carmex",category:"Lip Balm",ingredients:"camphor 1.7% menthol 0.7% salicylic acid 0.4% white petrolatum 40.5% beeswax cocoa butter lanolin phenol"},
+  {name:"Sawyer Picaridin Insect Repellent Lotion 20%",brand:"Sawyer",category:"Bug Repellent",ingredients:"picaridin hydroxyethyl isobutyl piperidine carboxylate 20% alcohol denat 8.22%"},
+  {name:"Ben's 30% DEET Insect Repellent",brand:"Ben's",category:"Bug Repellent",ingredients:"deet n n-diethyl-meta-toluamide 30% water dipropylene glycol monomethyl ether propylene glycol"},
+  {name:"Maybelline Fit Me Matte and Poreless Foundation",brand:"Maybelline",category:"Foundation",ingredients:"water titanium dioxide dimethicone talc alcohol peg-10 dimethicone phenyl trimethicone fragrance"},
+  {name:"L'Oreal True Match Foundation",brand:"L'Oreal",category:"Foundation",ingredients:"water dimethicone titanium dioxide alcohol glycerin niacinamide fragrance methylparaben propylparaben"},
+  {name:"NARS Sheer Glow Foundation",brand:"NARS",category:"Foundation",ingredients:"water dimethicone titanium dioxide glycerin niacinamide fragrance phenoxyethanol"},
+  {name:"IT Cosmetics CC+ Cream SPF 50",brand:"IT Cosmetics",category:"Foundation",ingredients:"titanium dioxide 20.1% zinc oxide 4.9% water dimethicone glycerin niacinamide collagen hyaluronic acid fragrance"},
+  {name:"Fenty Beauty Pro Filtr Foundation",brand:"Fenty Beauty",category:"Foundation",ingredients:"water dimethicone titanium dioxide glycerin niacinamide fragrance phenoxyethanol"},
+  {name:"e.l.f. Poreless Putty Primer",brand:"e.l.f.",category:"Primer",ingredients:"water dimethicone silica niacinamide squalane fragrance phenoxyethanol"},
+  {name:"Maybelline Sky High Mascara",brand:"Maybelline",category:"Mascara",ingredients:"water synthetic beeswax carnauba wax paraffin stearic acid triethanolamine fragrance methylparaben"},
+  {name:"L'Oreal Voluminous Mascara",brand:"L'Oreal",category:"Mascara",ingredients:"water synthetic beeswax carnauba wax paraffin stearic acid triethanolamine fragrance propylparaben methylparaben"},
+  {name:"Thorne Zinc Picolinate",brand:"Thorne",category:"Supplement",ingredients:"zinc picolinate 30mg microcrystalline cellulose hypromellose capsule leucine silicon dioxide"},
+  {name:"Thorne Vitamin D3",brand:"Thorne",category:"Supplement",ingredients:"cholecalciferol vitamin d3 medium chain triglycerides olive oil gelatin glycerin water"},
+  {name:"Nature Made Vitamin D3",brand:"Nature Made",category:"Supplement",ingredients:"cholecalciferol vitamin d3 soybean oil gelatin glycerin water dl-alpha tocopherol butylated hydroxyanisole bha"},
+  {name:"The Ordinary Niacinamide 10% + Zinc 1%",brand:"The Ordinary",category:"Serum",ingredients:"water niacinamide zinc pca pentylene glycol tamarindus indica seed gum xanthan gum isoceteth-20 ethoxydiglycol phenoxyethanol chlorphenesin"},
+  {name:"The Ordinary Hyaluronic Acid 2% + B5",brand:"The Ordinary",category:"Serum",ingredients:"water sodium hyaluronate panthenol propanediol sodium hyaluronate crosspolymer hyaluronic acid ethylhexylglycerin phenoxyethanol"},
+  {name:"The Ordinary Retinol 0.2% in Squalane",brand:"The Ordinary",category:"Serum",ingredients:"squalane retinol"},
+  {name:"Paula's Choice 2% BHA Liquid Exfoliant",brand:"Paula's Choice",category:"Treatment",ingredients:"water methylpropanediol butylene glycol salicylic acid camellia oleifera green tea leaf extract sodium hydroxide tetrasodium edta"},
+  {name:"Eucerin Advanced Repair Hand Cream",brand:"Eucerin",category:"Hand Cream",ingredients:"water glycerin urea cetyl palmitate sodium lactate caprylic capric triglyceride sodium chloride lactic acid methylparaben lanolin alcohol"},
+  {name:"Gold Bond Ultimate Healing Lotion",brand:"Gold Bond",category:"Body Moisturizer",ingredients:"water glycerin petrolatum dimethicone caprylic capric triglyceride sunflower seed oil vitamin e fragrance aloe barbadensis leaf juice"},
+  {name:"First Aid Beauty Pure Skin Face Cleanser",brand:"First Aid Beauty",category:"Cleanser",ingredients:"water sodium cocoyl isethionate glycerin allantoin panthenol niacinamide chamomile flower extract calendula flower extract"},
 ];
 
 const SAFE_PRODUCTS=[
@@ -79,110 +151,44 @@ const SAFE_PRODUCTS=[
   {id:2,name:"Vanicream Facial Moisturizer SPF 30",brand:"Vanicream",category:"Moisturizer + SPF",notes:"Zinc oxide 19.5% · 5 ceramides · Replaces moisturizer + sunscreen",where:"Target · CVS · Walmart"},
   {id:3,name:"Vanicream Daily Facial Moisturizer",brand:"Vanicream",category:"Moisturizer",notes:"5 ceramides · hyaluronic acid · squalane",where:"Target · CVS · Walmart"},
   {id:4,name:"Vanicream Vitamin C Serum",brand:"Vanicream",category:"Serum",notes:"Stable Vitamin C · 5 ceramides",where:"Target · CVS · Walmart"},
-  {id:5,name:"Vanicream SPF 50+ Mineral Sunscreen",brand:"Vanicream",category:"Sunscreen",notes:"Zinc oxide 12% · Body sunscreen",where:"Target · CVS · Walmart"},
+  {id:5,name:"Vanicream SPF 50 Mineral Sunscreen",brand:"Vanicream",category:"Sunscreen",notes:"Zinc oxide 12% · Body sunscreen",where:"Target · CVS · Walmart"},
   {id:6,name:"Vanicream Clinical Strength Antiperspirant",brand:"Vanicream",category:"Deodorant",notes:"Only 8 total ingredients · No fragrance",where:"Target · CVS · Walmart"},
   {id:7,name:"Vanicream Enhanced Moisturizer",brand:"Vanicream",category:"Body Moisturizer",notes:"Ceramides + hyaluronic acid · No botanical extracts",where:"Target · CVS · Walmart"},
   {id:8,name:"Vanicream Gentle Body Wash",brand:"Vanicream",category:"Body Wash",notes:"Fragrance-free · No botanical extracts",where:"Target · CVS · Walmart"},
   {id:9,name:"Cleure Sunscreen SPF 30",brand:"Cleure",category:"Sunscreen",notes:"Zinc oxide + titanium dioxide · Only 13 ingredients",where:"cleure.com · Amazon"},
   {id:10,name:"SEEN Fragrance Free Shampoo",brand:"SEEN",category:"Shampoo",notes:"Contains bisabolol — patch test first",where:"Ulta · helloseen.com · Amazon"},
   {id:11,name:"SEEN Fragrance Free Conditioner",brand:"SEEN",category:"Conditioner",notes:"Contains bisabolol — patch test first",where:"Ulta · helloseen.com · Amazon"},
-  {id:12,name:"SEEN Magic Serum (Fragrance Free)",brand:"SEEN",category:"Hair Serum",notes:"Only 3 ingredients · Shine + heat protection",where:"Ulta · helloseen.com · Amazon"},
-  {id:13,name:"Color WOW Root Cover Up (Dark Brown)",brand:"Color WOW",category:"Hair Color",notes:"Pure mineral pigments only",where:"Ulta · Sephora · Target"},
-  {id:14,name:"NuBeauti Root Touch Up Powder",brand:"NuBeauti",category:"Hair Color",notes:"3-5 pure mineral pigments",where:"nubeauti.com · Amazon"},
-  {id:15,name:"Madison Reed Root Touch-Up Mascara",brand:"Madison Reed",category:"Hair Color",notes:"Dark Brown · Verified safe formula",where:"madisonreed.com · Ulta"},
+  {id:12,name:"SEEN Magic Serum Fragrance Free",brand:"SEEN",category:"Hair Serum",notes:"Only 3 ingredients · Shine + heat protection",where:"Ulta · helloseen.com · Amazon"},
+  {id:13,name:"Color WOW Root Cover Up Dark Brown",brand:"Color WOW",category:"Hair Color",notes:"Pure mineral pigments only",where:"Ulta · Sephora · Target"},
+  {id:14,name:"NuBeauti Root Touch Up Powder Dark Brown",brand:"NuBeauti",category:"Hair Color",notes:"3-5 pure mineral pigments",where:"nubeauti.com · Amazon"},
+  {id:15,name:"Madison Reed Root Touch-Up Mascara Dark Brown",brand:"Madison Reed",category:"Hair Color",notes:"Verified safe formula",where:"madisonreed.com · Ulta"},
   {id:16,name:"Neutrogena Hydro Boost+ Caffeine Eye Gel",brand:"Neutrogena",category:"Eye Cream",notes:"Caffeine + peptides + hyaluronic acid",where:"Target · CVS · Walmart"},
   {id:17,name:"O'Keeffe's Lip Repair",brand:"O'Keeffe's",category:"Lip Balm",notes:"No fragrance · No lanolin",where:"Target · Walmart · CVS"},
   {id:18,name:"O'Keeffe's Lip Repair Night Formula",brand:"O'Keeffe's",category:"Lip Balm",notes:"Richer overnight formula",where:"Target · Walmart · CVS"},
-  {id:19,name:"Sawyer 20% Picaridin Lotion",brand:"Sawyer",category:"Bug Repellent",notes:"Only 2 ingredients · LOTION not spray",where:"REI · Amazon · Target"},
-  {id:20,name:"Ben's 30% DEET (wipes or pump)",brand:"Ben's",category:"Bug Repellent",notes:"4 total ingredients · Fragrance-free",where:"REI · Amazon · bens30.com"},
+  {id:19,name:"Sawyer Picaridin Insect Repellent Lotion 20%",brand:"Sawyer",category:"Bug Repellent",notes:"Only 2 ingredients · LOTION not spray",where:"REI · Amazon · Target"},
+  {id:20,name:"Ben's 30% DEET Insect Repellent",brand:"Ben's",category:"Bug Repellent",notes:"4 total ingredients · Fragrance-free",where:"REI · Amazon · bens30.com"},
   {id:21,name:"Thorne Zinc Picolinate",brand:"Thorne",category:"Supplement",notes:"Only 4 inactive ingredients",where:"thorne.com · Amazon"},
 ];
 
 const CATEGORIES=["All",...Array.from(new Set(SAFE_PRODUCTS.map(p=>p.category))).sort()];
 const RISK={avoid:{color:RED,bg:RED_LT,border:RED_BD,label:"Avoid"},caution:{color:GOLD,bg:GOLD_LT,border:GOLD_MID,label:"Caution"}};
 
-function positionRisk(a,term,list){
-  const idx=list.toLowerCase().indexOf(term.toLowerCase());
-  if(idx/list.length<0.3&&a.riskProfile==="caution") return{...a,riskProfile:"avoid",positionWarning:true};
-  return a;
-}
-function verdict(hits){
-  if(!hits.length) return"safe";
-  if(hits.some(h=>h.riskProfile==="avoid")) return"avoid";
-  return"caution";
-}
-function runCheck(text){
-  const lower=text.toLowerCase();
-  const hits=[],clean=[];
-  ALLERGENS.forEach(a=>{
-    const matched=a.terms.filter(t=>lower.includes(t));
-    if(matched.length) hits.push({...positionRisk(a,matched[0],text),matched});
-    else clean.push(a.name);
-  });
-  hits.sort((a,b)=>({avoid:0,caution:1}[a.riskProfile]-{avoid:0,caution:1}[b.riskProfile]));
-  return{hits,clean,verdict:verdict(hits)};
-}
+function positionRisk(a,term,list){const idx=list.toLowerCase().indexOf(term.toLowerCase());if(idx>=0&&idx/list.length<0.3&&a.riskProfile==="caution")return{...a,riskProfile:"avoid",positionWarning:true};return a;}
+function getVerdict(hits){if(!hits.length)return"safe";if(hits.some(h=>h.riskProfile==="avoid"))return"avoid";return"caution";}
+function runCheck(text){const lower=text.toLowerCase();const hits=[],clean=[];ALLERGENS.forEach(a=>{const matched=a.terms.filter(t=>lower.includes(t));if(matched.length)hits.push({...positionRisk(a,matched[0],text),matched});else clean.push(a.name);});hits.sort((a,b)=>({avoid:0,caution:1}[a.riskProfile]-{avoid:0,caution:1}[b.riskProfile]));return{hits,clean,verdict:getVerdict(hits)};}
+function searchDatabase(query){if(!query.trim())return[];const q=query.toLowerCase();return PRODUCT_DB.filter(p=>p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)).slice(0,6);}
 
-function SeverityDots({severity}){
-  const c=severity===3?RED:severity===2?GOLD:GOLD_MID;
-  return <span style={{display:"inline-flex",gap:3,alignItems:"center"}}>
-    {[1,2,3].map(i=><span key={i} style={{width:6,height:6,borderRadius:"50%",background:i<=severity?c:BORDER}}/>)}
-  </span>;
-}
+function SeverityDots({severity}){const c=severity===3?RED:severity===2?GOLD:GOLD_MID;return <span style={{display:"inline-flex",gap:3,alignItems:"center"}}>{[1,2,3].map(i=><span key={i} style={{width:6,height:6,borderRadius:"50%",background:i<=severity?c:BORDER}}/>)}</span>;}
 
 function ResultsView({results,expanded,setExpanded,animKey}){
   const pf={fontFamily:"'Playfair Display',serif"};
   return(
     <div key={animKey} className="fade-up" style={{marginTop:20}}>
-      {results.verdict==="safe"&&<div style={{background:GREEN_LT,border:`1.5px solid ${GREEN_BD}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}>
-        <div style={{...pf,fontSize:20,fontWeight:600,color:GREEN,marginBottom:5}}>All clear</div>
-        <p style={{color:"#1E6B4F",fontSize:13,lineHeight:1.6,margin:0}}>No allergens detected across all 13 of your confirmed sensitivities. Always verify the physical label.</p>
-      </div>}
-      {results.verdict==="avoid"&&<div style={{background:RED_LT,border:`1.5px solid ${RED_BD}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}>
-        <div style={{...pf,fontSize:20,fontWeight:600,color:RED,marginBottom:5}}>Do not use</div>
-        <p style={{color:"#A0302B",fontSize:13,lineHeight:1.6,margin:0}}>
-          {results.hits.filter(h=>h.riskProfile==="avoid").length} allergen{results.hits.filter(h=>h.riskProfile==="avoid").length>1?"s":""} with moderate-to-strong reactions detected.
-        </p>
-      </div>}
-      {results.verdict==="caution"&&<div style={{background:GOLD_LT,border:`1.5px solid ${GOLD_MID}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}>
-        <div style={{...pf,fontSize:20,fontWeight:600,color:"#8B6820",marginBottom:5}}>Proceed with care</div>
-        <p style={{color:"#7A5C18",fontSize:13,lineHeight:1.6,margin:0}}>Mild allergen detected. You may tolerate this depending on concentration and product type.</p>
-      </div>}
-      {results.hits.length>0&&["avoid","caution"].map(profile=>{
-        const phits=results.hits.filter(h=>h.riskProfile===profile);
-        if(!phits.length) return null;
-        const r=RISK[profile];
-        return<div key={profile} style={{marginBottom:14}}>
-          <div style={{fontSize:10,fontWeight:700,color:r.color,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>
-            {r.label} — {phits.length} allergen{phits.length>1?"s":""}
-          </div>
-          {phits.map(h=>(
-            <div key={h.id} onClick={()=>setExpanded(expanded===h.id?null:h.id)}
-              style={{background:r.bg,border:`1.5px solid ${r.border}`,borderRadius:12,padding:"14px 16px",marginBottom:8,cursor:"pointer"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:5}}>
-                    <span style={{fontWeight:600,color:r.color,fontSize:14}}>{h.name}</span>
-                    <SeverityDots severity={h.severity}/>
-                    {h.positionWarning&&<span style={{background:r.color+"22",color:r.color,fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:20}}>High in list</span>}
-                  </div>
-                  <div style={{fontSize:12,color:INK2}}>Detected: <strong>{h.matched.join(", ")}</strong></div>
-                </div>
-                <span style={{color:INK3,fontSize:13,marginLeft:8}}>{expanded===h.id?"▲":"▼"}</span>
-              </div>
-              {expanded===h.id&&<div className="fade-in" style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${r.border}`,fontSize:13,color:INK2,lineHeight:1.7}}>{h.clinicalNote}</div>}
-            </div>
-          ))}
-        </div>;
-      })}
-      {results.hits.length>0&&results.clean.length>0&&
-        <div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",marginBottom:14}}>
-          <div style={{fontSize:11,fontWeight:600,color:INK3,letterSpacing:0.5,marginBottom:8}}>NOT DETECTED — {results.clean.length} allergens</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
-            {results.clean.map(c=><span key={c} style={{background:CARD,border:`1px solid ${BORDER}`,color:INK2,fontSize:11,padding:"3px 8px",borderRadius:20}}>{c}</span>)}
-          </div>
-        </div>
-      }
+      {results.verdict==="safe"&&<div style={{background:GREEN_LT,border:`1.5px solid ${GREEN_BD}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}><div style={{...pf,fontSize:20,fontWeight:600,color:GREEN,marginBottom:5}}>All clear</div><p style={{color:"#1E6B4F",fontSize:13,lineHeight:1.6,margin:0}}>No allergens detected. Always verify the physical label — formulas change.</p></div>}
+      {results.verdict==="avoid"&&<div style={{background:RED_LT,border:`1.5px solid ${RED_BD}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}><div style={{...pf,fontSize:20,fontWeight:600,color:RED,marginBottom:5}}>Do not use</div><p style={{color:"#A0302B",fontSize:13,lineHeight:1.6,margin:0}}>{results.hits.filter(h=>h.riskProfile==="avoid").length} allergen{results.hits.filter(h=>h.riskProfile==="avoid").length>1?"s":""} with moderate-to-strong reactions detected.</p></div>}
+      {results.verdict==="caution"&&<div style={{background:GOLD_LT,border:`1.5px solid ${GOLD_MID}`,borderRadius:14,padding:"18px 20px",marginBottom:16}}><div style={{...pf,fontSize:20,fontWeight:600,color:"#8B6820",marginBottom:5}}>Proceed with care</div><p style={{color:"#7A5C18",fontSize:13,lineHeight:1.6,margin:0}}>Mild allergen detected. Read the notes below.</p></div>}
+      {results.hits.length>0&&["avoid","caution"].map(profile=>{const phits=results.hits.filter(h=>h.riskProfile===profile);if(!phits.length)return null;const r=RISK[profile];return<div key={profile} style={{marginBottom:14}}><div style={{fontSize:10,fontWeight:700,color:r.color,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>{r.label} — {phits.length} allergen{phits.length>1?"s":""}</div>{phits.map(h=>(<div key={h.id} onClick={()=>setExpanded(expanded===h.id?null:h.id)} style={{background:r.bg,border:`1.5px solid ${r.border}`,borderRadius:12,padding:"14px 16px",marginBottom:8,cursor:"pointer"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:5}}><span style={{fontWeight:600,color:r.color,fontSize:14}}>{h.name}</span><SeverityDots severity={h.severity}/>{h.positionWarning&&<span style={{background:r.color+"22",color:r.color,fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:20}}>High in list</span>}</div><div style={{fontSize:12,color:INK2}}>Detected: <strong>{h.matched.join(", ")}</strong></div></div><span style={{color:INK3,fontSize:13,marginLeft:8}}>{expanded===h.id?"▲":"▼"}</span></div>{expanded===h.id&&<div className="fade-in" style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${r.border}`,fontSize:13,color:INK2,lineHeight:1.7}}>{h.clinicalNote}</div>}</div>))}</div>;})}
+      {results.hits.length>0&&results.clean.length>0&&<div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",marginBottom:14}}><div style={{fontSize:11,fontWeight:600,color:INK3,letterSpacing:0.5,marginBottom:8}}>NOT DETECTED — {results.clean.length} allergens</div><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{results.clean.map(c=><span key={c} style={{background:CARD,border:`1px solid ${BORDER}`,color:INK2,fontSize:11,padding:"3px 8px",borderRadius:20}}>{c}</span>)}</div></div>}
     </div>
   );
 }
@@ -191,9 +197,8 @@ function App(){
   const [tab,setTab]=React.useState("checker");
   const [mode,setMode]=React.useState("search");
   const [searchQ,setSearchQ]=React.useState("");
-  const [searchResults,setSearchResults]=React.useState(null);
-  const [searching,setSearching]=React.useState(false);
-  const [searchError,setSearchError]=React.useState(null);
+  const [searchResults,setSearchResults]=React.useState([]);
+  const [checkedProduct,setCheckedProduct]=React.useState(null);
   const [pasteInput,setPasteInput]=React.useState("");
   const [results,setResults]=React.useState(null);
   const [expanded,setExpanded]=React.useState(null);
@@ -201,57 +206,10 @@ function App(){
   const [productSearch,setProductSearch]=React.useState("");
   const [productCat,setProductCat]=React.useState("All");
 
-  const searchProduct=async()=>{
-    if(!searchQ.trim()) return;
-    setSearching(true);
-    setSearchResults(null);
-    setSearchError(null);
-    setResults(null);
-    try{
-      const url=`https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchQ)}&search_simple=1&action=process&json=1&page_size=8&fields=product_name,product_name_en,brands,ingredients_text,ingredients_text_en`;
-      const res=await fetch(url,{headers:{'Accept':'application/json'}});
-      if(!res.ok) throw new Error("API error");
-      const data=await res.json();
-      if(data.products&&data.products.length>0){
-        const withIngredients=data.products.filter(p=>(p.ingredients_text_en&&p.ingredients_text_en.length>10)||(p.ingredients_text&&p.ingredients_text.length>10)).slice(0,4);
-        if(withIngredients.length>0){
-          setSearchResults(withIngredients);
-        } else {
-          setSearchResults(data.products.slice(0,4));
-          setSearchError("Found products but ingredient lists may be incomplete. Paste ingredients manually if needed.");
-        }
-      } else {
-        setSearchError("No products found. Try a shorter name or paste the ingredient list directly.");
-      }
-    }catch(e){
-      setSearchError("Search unavailable. Please paste the ingredient list manually.");
-    }
-    setSearching(false);
-  };
-
-  const checkFromSearch=(product)=>{
-    const ingredients=product.ingredients_text_en||product.ingredients_text||"";
-    const r=runCheck(ingredients);
-    setResults(r);
-    setAnimKey(k=>k+1);
-    setExpanded(null);
-    setSearchResults(null);
-  };
-
-  const checkPaste=()=>{
-    if(!pasteInput.trim()) return;
-    const r=runCheck(pasteInput);
-    setResults(r);
-    setAnimKey(k=>k+1);
-    setExpanded(null);
-  };
-
-  const filtered=React.useMemo(()=>SAFE_PRODUCTS.filter(p=>{
-    const mc=productCat==="All"||p.category===productCat;
-    const ms=!productSearch||p.name.toLowerCase().includes(productSearch.toLowerCase())||p.brand.toLowerCase().includes(productSearch.toLowerCase());
-    return mc&&ms;
-  }),[productSearch,productCat]);
-
+  const handleSearch=(q)=>{setSearchQ(q);setResults(null);setCheckedProduct(null);if(q.trim().length>1){setSearchResults(searchDatabase(q));}else{setSearchResults([]);}};
+  const checkFromDb=(product)=>{const r=runCheck(product.ingredients);setResults(r);setCheckedProduct(product);setAnimKey(k=>k+1);setExpanded(null);setSearchResults([]);};
+  const checkPaste=()=>{if(!pasteInput.trim())return;const r=runCheck(pasteInput);setResults(r);setAnimKey(k=>k+1);setExpanded(null);};
+  const filtered=React.useMemo(()=>SAFE_PRODUCTS.filter(p=>{const mc=productCat==="All"||p.category===productCat;const ms=!productSearch||p.name.toLowerCase().includes(productSearch.toLowerCase())||p.brand.toLowerCase().includes(productSearch.toLowerCase());return mc&&ms;}),[productSearch,productCat]);
   const sf={fontFamily:"'Inter',sans-serif"};
   const pf={fontFamily:"'Playfair Display',serif"};
 
@@ -259,7 +217,7 @@ function App(){
     <div style={{background:BASE,minHeight:"100vh",...sf}}>
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <a href="index.html" style={{...pf,fontSize:20,fontWeight:700,color:INK,textDecoration:"none"}}>Allergyze</a>
-        <a href="index.html" style={{fontSize:13,color:INK2,textDecoration:"none",fontWeight:500}}>← Back to home</a>
+        <a href="index.html" style={{fontSize:13,color:INK2,textDecoration:"none",fontWeight:500}}>← Home</a>
       </div>
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 24px"}}>
         <div style={{maxWidth:680,margin:"0 auto"}}>
@@ -274,54 +232,50 @@ function App(){
         {tab==="checker"&&(
           <div>
             <h2 style={{...pf,fontSize:22,fontWeight:600,color:INK,margin:"0 0 6px"}}>Check a product</h2>
-            <p style={{color:INK2,fontSize:13,margin:"0 0 20px",lineHeight:1.6}}>Search by name or paste an ingredient list. Results weighted by your patch test scores.</p>
+            <p style={{color:INK2,fontSize:13,margin:"0 0 20px",lineHeight:1.6}}>Search by name or paste any ingredient list. Results weighted by your patch test scores.</p>
             <div style={{display:"flex",gap:8,marginBottom:20}}>
               {[["search","🔍 Search by name"],["paste","📋 Paste ingredients"]].map(([m,label])=>(
-                <button key={m} onClick={()=>{setMode(m);setResults(null);setSearchResults(null);setSearchError(null);}} style={{flex:1,padding:"11px 16px",border:`1.5px solid ${mode===m?GOLD:BORDER}`,borderRadius:12,cursor:"pointer",fontSize:13,fontWeight:mode===m?600:400,background:mode===m?GOLD_LT:CARD,color:mode===m?"#6B4A10":INK2,...sf,transition:"all 0.2s"}}>{label}</button>
+                <button key={m} onClick={()=>{setMode(m);setResults(null);setSearchResults([]);setCheckedProduct(null);}} style={{flex:1,padding:"11px 16px",border:`1.5px solid ${mode===m?GOLD:BORDER}`,borderRadius:12,cursor:"pointer",fontSize:13,fontWeight:mode===m?600:400,background:mode===m?GOLD_LT:CARD,color:mode===m?"#6B4A10":INK2,...sf,transition:"all 0.2s"}}>{label}</button>
               ))}
             </div>
             {mode==="search"&&(
               <div>
-                <div style={{display:"flex",gap:8,marginBottom:12}}>
-                  <input value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyPress={e=>e.key==="Enter"&&searchProduct()} placeholder="e.g. Vanicream moisturizer, Neutrogena sunscreen..." style={{flex:1,padding:"12px 16px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,color:INK,...sf}}/>
-                  <button onClick={searchProduct} style={{padding:"12px 20px",background:INK,color:CARD,border:"none",borderRadius:12,fontSize:13,fontWeight:600,cursor:"pointer",...sf}}>{searching?"…":"Search"}</button>
+                <div style={{position:"relative",marginBottom:12}}>
+                  <input value={searchQ} onChange={e=>handleSearch(e.target.value)} placeholder="e.g. Neutrogena, Vanicream, CeraVe, Dove..." style={{width:"100%",padding:"12px 16px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,color:INK,...sf}}/>
+                  {searchQ&&<button onClick={()=>{setSearchQ("");setSearchResults([]);setResults(null);setCheckedProduct(null);}} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:INK3,fontSize:16,...sf}}>×</button>}
                 </div>
-                {searching&&<div style={{textAlign:"center",padding:"24px 0",color:INK3,fontSize:13}}><div style={{width:20,height:20,border:`2px solid ${BORDER}`,borderTopColor:GOLD,borderRadius:"50%",animation:"spin 0.7s linear infinite",margin:"0 auto 10px"}}/>Searching…</div>}
-                {searchError&&<div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",fontSize:13,color:INK2,lineHeight:1.6}}>{searchError}</div>}
-                {searchResults&&(
+                {searchQ.length>1&&searchResults.length===0&&<div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",fontSize:13,color:INK2,lineHeight:1.6}}>No products found for "{searchQ}". Try a shorter name or switch to Paste mode.</div>}
+                {searchResults.length>0&&(
                   <div className="fade-up">
-                    <div style={{fontSize:11,fontWeight:700,color:INK3,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10}}>Select a product</div>
+                    <div style={{fontSize:11,fontWeight:700,color:INK3,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10}}>{searchResults.length} product{searchResults.length>1?"s":""} found — tap to check</div>
                     {searchResults.map((p,i)=>(
-                      <div key={i} onClick={()=>checkFromSearch(p)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",marginBottom:8,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
-                        <div style={{fontWeight:600,fontSize:14,color:INK,marginBottom:3}}>{p.product_name||p.product_name_en||"Unnamed product"}</div>
-                        {p.brands&&<div style={{fontSize:12,color:INK3,marginBottom:5}}>{p.brands}</div>}
-                        <div style={{fontSize:11,color:INK3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{(p.ingredients_text_en||p.ingredients_text||"").slice(0,120)}…</div>
-                        <div style={{fontSize:11,color:GOLD,fontWeight:600,marginTop:6}}>Tap to check →</div>
+                      <div key={i} onClick={()=>checkFromDb(p)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"14px 16px",marginBottom:8,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
+                        <div style={{fontWeight:600,fontSize:14,color:INK,marginBottom:2}}>{p.name}</div>
+                        <div style={{fontSize:12,color:INK3,marginBottom:6}}>{p.brand} · {p.category}</div>
+                        <div style={{fontSize:11,color:GOLD,fontWeight:600}}>Tap to check allergens →</div>
                       </div>
                     ))}
                   </div>
                 )}
-                {results&&(
+                {results&&checkedProduct&&(
                   <div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                      <div style={{fontSize:11,fontWeight:700,color:INK3,letterSpacing:1,textTransform:"uppercase"}}>Results</div>
-                      <button onClick={()=>{setResults(null);setSearchQ("");setSearchResults(null);}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:INK3,...sf}}>Clear</button>
+                    <div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 14px",marginBottom:4,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div><div style={{fontWeight:600,fontSize:13,color:INK}}>{checkedProduct.name}</div><div style={{fontSize:11,color:INK3}}>{checkedProduct.brand}</div></div>
+                      <button onClick={()=>{setResults(null);setCheckedProduct(null);setSearchQ("");}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:INK3,...sf}}>Clear</button>
                     </div>
                     <ResultsView results={results} expanded={expanded} setExpanded={setExpanded} animKey={animKey}/>
                   </div>
                 )}
+                <div style={{marginTop:16,padding:"12px 16px",background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,fontSize:12,color:INK3,lineHeight:1.6}}>
+                  💡 Not seeing your product? Switch to <button onClick={()=>setMode("paste")} style={{background:"none",border:"none",cursor:"pointer",color:GOLD,fontSize:12,fontWeight:600,...sf}}>Paste mode</button> to check any product.
+                </div>
               </div>
             )}
             {mode==="paste"&&(
               <div>
                 <textarea value={pasteInput} onChange={e=>{setPasteInput(e.target.value);setResults(null);}} placeholder="Paste ingredient list here…" style={{width:"100%",minHeight:130,padding:"14px 16px",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,color:INK,fontFamily:"'Inter',sans-serif",lineHeight:1.7,resize:"vertical"}}/>
                 <button onClick={checkPaste} style={{width:"100%",marginTop:10,padding:14,background:INK,color:CARD,border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",...sf}}>Check Ingredients</button>
-                {results&&(
-                  <div>
-                    <ResultsView results={results} expanded={expanded} setExpanded={setExpanded} animKey={animKey}/>
-                    <button onClick={()=>{setPasteInput("");setResults(null);setExpanded(null);}} style={{width:"100%",padding:12,background:"transparent",color:INK2,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,fontWeight:500,cursor:"pointer",marginTop:10,...sf}}>Clear & check another</button>
-                  </div>
-                )}
+                {results&&(<div><ResultsView results={results} expanded={expanded} setExpanded={setExpanded} animKey={animKey}/><button onClick={()=>{setPasteInput("");setResults(null);setExpanded(null);}} style={{width:"100%",padding:12,background:"transparent",color:INK2,border:`1.5px solid ${BORDER}`,borderRadius:12,fontSize:13,fontWeight:500,cursor:"pointer",marginTop:10,...sf}}>Clear & check another</button></div>)}
               </div>
             )}
           </div>
@@ -337,22 +291,7 @@ function App(){
               </select>
             </div>
             <div style={{fontSize:11,color:INK3,letterSpacing:0.5,marginBottom:12}}>{filtered.length} PRODUCTS</div>
-            {filtered.map(p=>(
-              <div key={p.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"16px 18px",marginBottom:10}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:3}}>
-                      <span style={{fontWeight:600,fontSize:14,color:INK}}>{p.name}</span>
-                      <span style={{background:GOLD_LT,color:GOLD,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20}}>{p.category}</span>
-                    </div>
-                    <div style={{fontSize:12,color:INK3,marginBottom:5}}>{p.brand}</div>
-                    <div style={{fontSize:13,color:INK2,lineHeight:1.5}}>{p.notes}</div>
-                    <div style={{fontSize:11,color:INK3,marginTop:5}}>{p.where}</div>
-                  </div>
-                  <div style={{width:26,height:26,borderRadius:"50%",background:GREEN_LT,border:`1px solid ${GREEN_BD}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:GREEN,fontWeight:700}}>✓</div>
-                </div>
-              </div>
-            ))}
+            {filtered.map(p=>(<div key={p.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"16px 18px",marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:3}}><span style={{fontWeight:600,fontSize:14,color:INK}}>{p.name}</span><span style={{background:GOLD_LT,color:GOLD,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20}}>{p.category}</span></div><div style={{fontSize:12,color:INK3,marginBottom:5}}>{p.brand}</div><div style={{fontSize:13,color:INK2,lineHeight:1.5}}>{p.notes}</div><div style={{fontSize:11,color:INK3,marginTop:5}}>{p.where}</div></div><div style={{width:26,height:26,borderRadius:"50%",background:GREEN_LT,border:`1px solid ${GREEN_BD}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:GREEN,fontWeight:700}}>✓</div></div></div>))}
           </div>
         )}
         {tab==="allergens"&&(
@@ -363,42 +302,26 @@ function App(){
               <div style={{fontWeight:600,fontSize:14,color:INK,marginBottom:12}}>Understanding your scores</div>
               {[[RED,"+3 Strong","Hard avoid at any concentration. Tixocortol (steroid allergy) — tell every doctor."],[GOLD,"+2 Moderate","Clear reaction. Avoid in all products. 7 allergens including fragrance mixes, oxybenzone, BHA."],[GOLD_MID,"+1 Mild","Low-grade reaction. Context matters. You may tolerate low concentrations. Watch for stacking."]].map(([c,score,text])=>(
                 <div key={score} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
-                  <div style={{display:"flex",gap:3,marginTop:4,flexShrink:0}}>
-                    {[1,2,3].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:score==="+3 Strong"?(i<=3?c:BORDER):score==="+2 Moderate"?(i<=2?c:BORDER):(i<=1?c:BORDER)}}/>)}
-                  </div>
+                  <div style={{display:"flex",gap:3,marginTop:4,flexShrink:0}}>{[1,2,3].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:score==="+3 Strong"?(i<=3?c:BORDER):score==="+2 Moderate"?(i<=2?c:BORDER):(i<=1?c:BORDER)}}/>)}</div>
                   <div><span style={{fontWeight:700,color:c,fontSize:13}}>{score} </span><span style={{fontSize:13,color:INK2,lineHeight:1.6}}>{text}</span></div>
                 </div>
               ))}
             </div>
             {["Fragrance","Sunscreen","Corticosteroid","Botanical","Fragrance / Botanical","Preservative","Animal Derivative","Bee Product","Metal","Resin"].map(cat=>{
               const catA=ALLERGENS.filter(a=>a.category===cat);
-              if(!catA.length) return null;
+              if(!catA.length)return null;
               return(
                 <div key={cat} style={{marginBottom:18}}>
                   <div style={{fontSize:10,fontWeight:700,color:GOLD,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>{cat}</div>
-                  {catA.map(a=>{
-                    const r=RISK[a.riskProfile]||RISK.caution;
-                    const isExp=expanded===a.id+"_a";
-                    return(
-                      <div key={a.id} onClick={()=>setExpanded(isExp?null:a.id+"_a")} style={{background:CARD,border:`1px solid ${isExp?r.border:BORDER}`,borderRadius:12,padding:"13px 16px",marginBottom:8,cursor:"pointer",transition:"border-color 0.15s"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                            <span style={{fontWeight:600,fontSize:13,color:INK}}>{a.name}</span>
-                            <SeverityDots severity={a.severity}/>
-                            <span style={{background:r.bg,color:r.color,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20}}>{r.label}</span>
-                          </div>
-                          <span style={{color:INK3,fontSize:12}}>{isExp?"▲":"▼"}</span>
-                        </div>
-                        {isExp&&<div className="fade-in">
-                          <div style={{fontSize:13,color:INK2,lineHeight:1.7,margin:"12px 0 10px",paddingTop:12,borderTop:`1px solid ${BORDER}`}}>{a.clinicalNote}</div>
-                          <div style={{fontSize:10,fontWeight:700,color:INK3,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Also listed as</div>
-                          <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                            {a.terms.map(t=><span key={t} style={{background:CARD2,border:`1px solid ${BORDER}`,color:INK2,fontSize:11,padding:"2px 8px",borderRadius:20}}>{t}</span>)}
-                          </div>
-                        </div>}
+                  {catA.map(a=>{const r=RISK[a.riskProfile]||RISK.caution;const isExp=expanded===a.id+"_a";return(
+                    <div key={a.id} onClick={()=>setExpanded(isExp?null:a.id+"_a")} style={{background:CARD,border:`1px solid ${isExp?r.border:BORDER}`,borderRadius:12,padding:"13px 16px",marginBottom:8,cursor:"pointer"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><span style={{fontWeight:600,fontSize:13,color:INK}}>{a.name}</span><SeverityDots severity={a.severity}/><span style={{background:r.bg,color:r.color,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20}}>{r.label}</span></div>
+                        <span style={{color:INK3,fontSize:12}}>{isExp?"▲":"▼"}</span>
                       </div>
-                    );
-                  })}
+                      {isExp&&<div className="fade-in"><div style={{fontSize:13,color:INK2,lineHeight:1.7,margin:"12px 0 10px",paddingTop:12,borderTop:`1px solid ${BORDER}`}}>{a.clinicalNote}</div><div style={{fontSize:10,fontWeight:700,color:INK3,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Also listed as</div><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{a.terms.map(t=><span key={t} style={{background:CARD2,border:`1px solid ${BORDER}`,color:INK2,fontSize:11,padding:"2px 8px",borderRadius:20}}>{t}</span>)}</div></div>}
+                    </div>
+                  );})}
                 </div>
               );
             })}
